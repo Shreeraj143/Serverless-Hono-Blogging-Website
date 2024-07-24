@@ -42,7 +42,7 @@ userRouter.post("/signup", async (c) => {
 
     return c.json({
       jwt: token,
-      id: user.id,
+      // id: user.id,
     });
   } catch (error) {
     console.error("Error during user creation:", error);
