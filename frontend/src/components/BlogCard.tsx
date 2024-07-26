@@ -20,7 +20,7 @@ export const BlogCard = ({
       <div className="p-4 border-b border-slate-200 pb-4 max-w-3xl w-screen cursor-pointer ">
         <div className="flex items-center">
           <Avatar size="small" name={authorName} />
-          <div className="font-extralight pl-2">{authorName}</div>
+          <div className="font-extralight pl-2 capitalize">{authorName}</div>
           <div className="flex flex-col justify-center pl-2">
             <Circle />
           </div>
@@ -56,7 +56,7 @@ export function Avatar({
       <span
         className={`${
           size === "small" ? "text-sm" : "text-md"
-        } text-gray-600 dark:text-gray-300`}
+        } text-gray-600 dark:text-gray-300 capitalize`}
       >
         {name[0]}
       </span>
