@@ -1,7 +1,6 @@
 import { BlogCard } from "../components/BlogCard";
 import { Appbar } from "./Appbar";
 import { useBlogs } from "../hooks";
-import { Spinner } from "../components/Spinner";
 import { BlogSkeleton } from "../components/BlogSkeleton";
 
 export const Blogs = () => {
@@ -22,6 +21,7 @@ export const Blogs = () => {
   return (
     <>
       <Appbar />
+      <div className="text-5xl text-center py-5 ">All Blogs</div>
       <div className="flex justify-center">
         <div className="">
           {blogs.length === 0 ? (

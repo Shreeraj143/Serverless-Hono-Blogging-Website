@@ -15,7 +15,10 @@ export const SingleBlog = ({ blog }: { blog: Blog }) => {
                 Posted on 24th March 2024
               </div>
             </div>
-            <div className="pt-6">{blog.content}</div>
+            <div
+              className="pt-6"
+              dangerouslySetInnerHTML={{ __html: blog.content }}
+            />
           </div>
           <div className="col-span-3 h-screen pl-4">
             <span className="text-lg text-slate-600">Author</span>

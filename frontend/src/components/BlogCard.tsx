@@ -27,9 +27,14 @@ export const BlogCard = ({
           <div className="pl-2 font-thin text-slate-500">{publishedDate}</div>
         </div>
         <div className="text-2xl font-semibold pt-2">{title}</div>
-        <div className="text-md font-thin">{content.slice(0, 100) + "..."}</div>
+        <div
+          className="text-md font-thin"
+          dangerouslySetInnerHTML={{
+            __html: content.substring(0, 100) + "...",
+          }}
+        ></div>
         <div className="font-thin text-sm text-slate-500 pt-4">{`${Math.ceil(
-          content.length / 100
+          content.length / 1000
         )} minute(s)`}</div>
       </div>
     </Link>

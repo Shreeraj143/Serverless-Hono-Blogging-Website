@@ -1,10 +1,12 @@
 import axios from "axios";
 import { BACKEND_URL } from "../config";
 import { useNavigate } from "react-router-dom";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useRef, useState } from "react";
 import { Appbar } from "./Appbar";
+import JoditEditor from "jodit-react";
 
 export const Publish = () => {
+  const editor = useRef(null);
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const navigate = useNavigate();
@@ -23,11 +25,22 @@ export const Publish = () => {
             placeholder="Title"
           />
 
-          <TextEditor
-            onChange={(e) => {
-              setDescription(e.target.value);
-            }}
-          />
+          <div className="mt-5">
+            <div className="w-full mb-4">
+              <div className="flex items-center justify-between border">
+                <div className="my-2 bg-white rounded-b-lg w-full">
+                  <label className="sr-only">Publish post</label>
+                  <JoditEditor
+                    ref={editor}
+                    value={description}
+                    onChange={(newDescription) =>
+                      setDescription(newDescription)
+                    }
+                  />
+                </div>
+              </div>
+            </div>
+          </div>
           <button
             onClick={async () => {
               const response = await axios.post(
@@ -54,29 +67,3 @@ export const Publish = () => {
     </div>
   );
 };
-
-function TextEditor({
-  onChange,
-}: {
-  onChange: (e: ChangeEvent<HTMLTextAreaElement>) => void;
-}) {
-  return (
-    <div className="mt-2">
-      <div className="w-full mb-4 ">
-        <div className="flex items-center justify-between border">
-          <div className="my-2 bg-white rounded-b-lg w-full">
-            <label className="sr-only">Publish post</label>
-            <textarea
-              onChange={onChange}
-              id="editor"
-              rows={8}
-              className="focus:outline-none block w-full px-0 text-sm text-gray-800 bg-white border-0 pl-2"
-              placeholder="Write an article..."
-              required
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
