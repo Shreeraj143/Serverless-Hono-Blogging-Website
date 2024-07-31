@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Appbar } from "./Appbar";
 import { BlogCard } from "../components/BlogCard";
 import { useBlogs } from "../hooks/";
 
@@ -8,7 +7,6 @@ export const Home = () => {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Appbar />
       <header className="bg-gradient-to-r from-blue-600 to-blue-400 text-white py-12">
         <div className="container mx-auto text-center px-6 md:px-12">
           <h1 className="text-5xl font-bold">Welcome to Our Blog</h1>

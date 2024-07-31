@@ -2,7 +2,6 @@ import axios from "axios";
 import { BACKEND_URL } from "../config";
 import { useNavigate } from "react-router-dom";
 import { ChangeEvent, useRef, useState } from "react";
-import { Appbar } from "./Appbar";
 import JoditEditor from "jodit-react";
 
 export const Publish = () => {
@@ -13,7 +12,6 @@ export const Publish = () => {
 
   return (
     <div>
-      <Appbar />
       <div className="flex justify-center w-full pt-8">
         <div className="max-w-screen-lg w-full">
           <input

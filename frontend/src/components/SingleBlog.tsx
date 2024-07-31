@@ -1,11 +1,9 @@
-import { Appbar } from "../pages/Appbar";
 import { Blog } from "../hooks";
 import { Avatar } from "./BlogCard";
 
 export const SingleBlog = ({ blog }: { blog: Blog }) => {
   return (
     <div className="">
-      <Appbar />
       <div className="flex justify-center">
         <div className="grid px-10 w-full grid-cols-12 max-w-screen-2xl pt-12">
           <div className="col-span-9 pr-5">
