@@ -3,29 +3,46 @@ import axios from "axios";
 import { ChangeEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_URL } from "../config";
+import { Alert, Spinner } from "flowbite-react";
 
 export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   const navigate = useNavigate();
+  const [errorMessage, setErrorMessage] = useState("");
+  const [loading, setLoading] = useState(false);
   const [postInputs, setPostInputs] = useState<SignupInput>({
     email: "",
     password: "",
     username: "",
   });
 
-  const sendRequest = async () => {
+  const sendRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault();
+    if (!postInputs.username || !postInputs.email || !postInputs.password) {
+      return setErrorMessage("Please fill out all fields.");
+    }
     try {
+      setLoading(true);
+      setErrorMessage("");
       const response = await axios.post(
         `${BACKEND_URL}/api/v1/user/${type === "signup" ? "signup" : "signin"}`,
         postInputs
       );
 
+      console.log(response);
+
+      if (response.data.success === false) {
+        return setErrorMessage(response.data.message);
+      }
       const jwt = response.data.jwt;
       // console.log(jwt);
 
       localStorage.setItem("token", jwt);
-      navigate("/blogs");
-    } catch (error) {
+      setLoading(false);
+      navigate("/signin");
+    } catch (error: any) {
       console.log(error);
+      setErrorMessage(error.message);
+      setLoading(false);
     }
   };
 
@@ -51,7 +68,7 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
             onChange={(e) => {
               setPostInputs((postInput) => ({
                 ...postInput,
-                name: e.target.value,
+                username: e.target.value,
               }));
             }}
           />
@@ -84,8 +101,22 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
           type="button"
           className="mt-4 w-full text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
         >
-          {type === "signup" ? "Sign Up" : "Sign In"}
+          {loading ? (
+            <>
+              <Spinner size={"sm"} />
+              <span className="pl-3">Loading...</span>
+            </>
+          ) : type === "signup" ? (
+            "Sign Up"
+          ) : (
+            "Sign In"
+          )}
         </button>
+        {errorMessage && (
+          <Alert className="mt-5 w-full bg-red-200 text-red-600">
+            {errorMessage}
+          </Alert>
+        )}
       </div>
     </div>
   );

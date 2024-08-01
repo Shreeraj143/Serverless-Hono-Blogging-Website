@@ -1,12 +1,13 @@
-import { Link, NavLink } from "react-router-dom";
+import { NavLink, useLocation } from "react-router-dom";
 import { Avatar } from "../components/BlogCard";
-import { Button } from "flowbite-react";
+import { Button, Navbar } from "flowbite-react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon } from "react-icons/fa";
 
 export const Appbar = () => {
+  const location = useLocation().pathname;
   return (
-    <div className="flex justify-between px-10 py-4 border-b items-center">
+    <Navbar className="flex md:justify-between px-4 sm:px-6 md:px-10 py-4 border-b items-center">
       <NavLink to={"/"}>Medium</NavLink>
       <div className="hidden lg:flex items-center relative">
         <input
@@ -16,38 +17,65 @@ export const Appbar = () => {
         />
         <AiOutlineSearch className="absolute right-3 text-xl text-gray-500" />
       </div>
-      <div className="flex mr-20 gap-36">
-        <div className="flex justify-between w-64 items-center">
-          <NavLink
-            className={({ isActive }) => (isActive ? "text-blue-500" : "")}
-            to={"/"}
-          >
-            Home
-          </NavLink>
-          <NavLink
-            className={({ isActive }) => (isActive ? "text-blue-500" : "")}
-            to={"/about"}
-          >
-            About
-          </NavLink>
-          <NavLink
-            className={({ isActive }) => (isActive ? "text-blue-500" : "")}
-            to={"/publish"}
-          >
-            Publish
-          </NavLink>
-        </div>
+      <Button className="lg:hidden" color={"gray"}>
+        <AiOutlineSearch className="text-2xl" />
+      </Button>
 
-        <div className="flex gap-5 items-center">
+      <div className="flex md:gap-16 lg:gap-24 items-center md:order-2">
+        <div className="flex gap-5 items-center justify-between">
           <Avatar size="big" name={"Shreeraj"} />
           <div className="bg-slate-800 h-9 w-9 rounded-full flex items-center justify-center text-white">
             <FaMoon />
           </div>
-          <Button color={"gray"} size={"lg"}>
-            <Link to="/signup">Sign Up</Link>
-          </Button>
         </div>
+        <Navbar.Toggle className="ml-3" />
       </div>
-    </div>
+      <Navbar.Collapse>
+        <Navbar.Link
+          href="/"
+          active={location === "/"}
+          className={
+            location === "/"
+              ? "text-blue-500 hover:text-blue-500"
+              : "hover:text-blue-500"
+          }
+        >
+          Home
+        </Navbar.Link>
+        <Navbar.Link
+          href="/about"
+          active={location === "/about"}
+          className={
+            location === "/about"
+              ? "text-blue-500 hover:text-blue-500"
+              : "hover:text-blue-500"
+          }
+        >
+          About
+        </Navbar.Link>
+        <Navbar.Link
+          href="/publish"
+          active={location === "/publish"}
+          className={
+            location === "/publish"
+              ? "text-blue-500 hover:text-blue-500"
+              : "hover:text-blue-500"
+          }
+        >
+          Publish
+        </Navbar.Link>
+        <Navbar.Link
+          href="/signup"
+          active={location === "/signup"}
+          className={
+            location === "/signup"
+              ? "text-blue-500 hover:text-blue-500"
+              : "hover:text-blue-500"
+          }
+        >
+          Sign Up
+        </Navbar.Link>
+      </Navbar.Collapse>
+    </Navbar>
   );
 };
