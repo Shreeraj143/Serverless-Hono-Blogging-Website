@@ -7,7 +7,10 @@
   "dependencies": {
     "@prisma/client": "^5.17.0",
     "@prisma/extension-accelerate": "^1.1.0",
-    "@shreeraj1811/medium-common": "^1.0.0",
+    "@shreeraj1811/medium-common": "^1.0.1",
+    "@types/bcryptjs": "^2.4.6",
+    "bcrypt": "^5.1.1",
+    "bcryptjs": "^2.4.3",
     "hono": "^4.5.0",
     "prisma": "^5.17.0"
   },

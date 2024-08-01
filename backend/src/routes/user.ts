@@ -3,6 +3,7 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { signinInput, signupInput } from "@shreeraj1811/medium-common";
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
+import bcryptjs, { hash } from "bcryptjs";
 
 export const userRouter = new Hono<{
   Bindings: {
@@ -29,11 +30,13 @@ userRouter.post("/signup", async (c) => {
       });
     }
 
+    const hashedPassword = bcryptjs.hashSync(body.password, 10);
+
     const user = await prisma.user.create({
       data: {
         email: body.email,
-        password: body.password,
-        name: body.name,
+        password: hashedPassword,
+        username: body.username,
       },
     });
     console.log(user);

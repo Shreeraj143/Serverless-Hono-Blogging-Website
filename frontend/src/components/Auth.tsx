@@ -9,7 +9,7 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   const [postInputs, setPostInputs] = useState<SignupInput>({
     email: "",
     password: "",
-    name: "",
+    username: "",
   });
 
   const sendRequest = async () => {
@@ -46,8 +46,8 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
       <div className="flex flex-col gap-4 mt-8 w-8/12">
         {type === "signup" ? (
           <LabelledInput
-            label="Name"
-            placeholder="Enter your Name"
+            label="Username"
+            placeholder="Enter your Username"
             onChange={(e) => {
               setPostInputs((postInput) => ({
                 ...postInput,

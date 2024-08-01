@@ -1,6 +1,6 @@
 import { Link, NavLink } from "react-router-dom";
 import { Avatar } from "../components/BlogCard";
-import { Button, TextInput } from "flowbite-react";
+import { Button } from "flowbite-react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon } from "react-icons/fa";
 

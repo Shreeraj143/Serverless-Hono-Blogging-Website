@@ -10,7 +10,7 @@
     "preview": "vite preview"
   },
   "dependencies": {
-    "@shreeraj1811/medium-common": "^1.0.0",
+    "@shreeraj1811/medium-common": "^1.0.1",
     "axios": "^1.7.2",
     "flowbite": "^2.4.1",
     "flowbite-react": "^0.10.1",
