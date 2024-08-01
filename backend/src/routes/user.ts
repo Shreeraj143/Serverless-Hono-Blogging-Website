@@ -4,6 +4,7 @@ import { signinInput, signupInput } from "@shreeraj1811/medium-common";
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
 import bcryptjs, { hash } from "bcryptjs";
+import { errorHandler } from "../utils/error";
 
 export const userRouter = new Hono<{
   Bindings: {
@@ -20,14 +21,10 @@ userRouter.post("/signup", async (c) => {
 
   try {
     const body = await c.req.json();
-    console.log(body);
 
     const { success } = signupInput.safeParse(body);
     if (!success) {
-      c.status(411);
-      return c.json({
-        message: "Invalid inputs",
-      });
+      throw errorHandler({ statusCode: 411, message: "Invalid Inputs" });
     }
 
     const hashedPassword = bcryptjs.hashSync(body.password, 10);
@@ -47,9 +44,22 @@ userRouter.post("/signup", async (c) => {
       jwt: token,
       // id: user.id,
     });
-  } catch (error) {
-    console.error("Error during user creation:", error);
-    return c.json({ error: "Internal Server Error" }, 500);
+  } catch (error: any) {
+    // console.log("Error during user creation:", error);
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Internal Server Error";
+    const name = error.name || "Internal Server Error";
+    return c.json(
+      {
+        success: false,
+        name,
+        statusCode,
+        message,
+      },
+      {
+        status: statusCode,
+      }
+    );
   }
 });
 
