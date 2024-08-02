@@ -8,7 +8,9 @@ export const Appbar = () => {
   const location = useLocation().pathname;
   return (
     <Navbar className="flex md:justify-between px-4 sm:px-6 md:px-10 py-4 border-b items-center">
-      <NavLink to={"/"}>Medium</NavLink>
+      <NavLink to={"/"} className="text-lg">
+        BlogSage
+      </NavLink>
       <div className="hidden lg:flex items-center relative">
         <input
           type="text"

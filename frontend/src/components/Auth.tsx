@@ -48,13 +48,15 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
 
   return (
     <div className="flex flex-col items-center h-screen justify-center">
-      <h1 className="text-4xl font-bold">Create an Account</h1>
+      <h1 className="text-4xl font-bold">
+        {type === "signup" ? "Create an account" : "Login to your account"}
+      </h1>
       <p className="mt-2 text-slate-500 font-light text-lg">
         {type === "signup"
           ? "Already have an account?"
           : "Don't have an account"}{" "}
         <Link
-          className=" underline"
+          className=" underline text-blue-500"
           to={type === "signup" ? "/signin" : "/signup"}
         >
           {type === "signup" ? "Sign In" : "Sign Up"}
@@ -98,12 +100,13 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
         />
         <button
           onClick={sendRequest}
+          disabled={loading}
           type="button"
           className="mt-4 w-full text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
         >
           {loading ? (
             <>
-              <Spinner size={"sm"} />
+              <Spinner size={"sm"} color="info" />
               <span className="pl-3">Loading...</span>
             </>
           ) : type === "signup" ? (

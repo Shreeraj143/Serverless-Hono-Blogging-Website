@@ -7,6 +7,7 @@ import { Publish } from "./pages/Publish";
 import { Home } from "./pages/Home";
 import { Appbar } from "./components/Appbar";
 import About from "./pages/About";
+import FooterComponent from "./components/FooterComponent";
 
 function App() {
   return (
@@ -22,6 +23,7 @@ function App() {
           <Route path="/blogs" element={<Blogs />} />
           <Route path="/publish" element={<Publish />} />
         </Routes>
+        <FooterComponent />
       </BrowserRouter>
     </>
   );
