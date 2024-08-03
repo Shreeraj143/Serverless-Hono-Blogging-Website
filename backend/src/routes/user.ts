@@ -69,29 +69,55 @@ userRouter.post("/signin", async (c) => {
     datasourceUrl: c.env.DATABASE_URL,
   }).$extends(withAccelerate());
 
-  const body = await c.req.json();
+  try {
+    const body = await c.req.json();
 
-  const { success } = signinInput.safeParse(body);
-  if (!success) {
-    c.status(411);
-    return c.json({
-      message: "Invalid inputs",
+    const { success } = signinInput.safeParse(body);
+    if (!success) {
+      throw errorHandler({ statusCode: 411, message: "Invalid Inputs" });
+    }
+
+    const findUser = await prisma.user.findUnique({
+      where: {
+        email: body.email,
+      },
     });
+
+    if (!findUser) {
+      throw errorHandler({ statusCode: 401, message: "User not found" });
+    }
+
+    const validPassword = bcryptjs.compareSync(
+      body.password,
+      findUser?.password
+    );
+
+    if (!validPassword) {
+      throw errorHandler({
+        statusCode: 401,
+        message: "Incorrect Email or Password",
+      });
+    }
+
+    const jwt = await sign({ id: findUser.id }, c.env.JWT_SECRET);
+
+    const { password, ...rest } = findUser;
+
+    return c.json({ jwt, user: rest });
+  } catch (error: any) {
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Internal Server Error";
+    const name = error.name || "Internal Server Error";
+    return c.json(
+      {
+        success: false,
+        name,
+        statusCode,
+        message,
+      },
+      {
+        status: statusCode,
+      }
+    );
   }
-
-  const findUser = await prisma.user.findUnique({
-    where: {
-      email: body.email,
-      password: body.password,
-    },
-  });
-
-  if (!findUser) {
-    c.status(403);
-    return c.json({ error: "User not found" });
-  }
-
-  const jwt = await sign({ id: findUser.id }, c.env.JWT_SECRET);
-
-  return c.json(jwt);
 });
