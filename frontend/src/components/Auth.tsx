@@ -1,28 +1,51 @@
 import { SignupInput } from "@shreeraj1811/medium-common";
 import axios from "axios";
-import { ChangeEvent, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BACKEND_URL } from "../config";
+import { BACKEND_URL, UserAtomState } from "../config";
 import { Alert, Spinner } from "flowbite-react";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { userAtom } from "../store/atoms";
 
 export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   const navigate = useNavigate();
-  const [errorMessage, setErrorMessage] = useState("");
-  const [loading, setLoading] = useState(false);
+  // const [errorMessage, setErrorMessage] = useState("");
+  // const [loading, setLoading] = useState(false);
+  const userInfo = useRecoilValue<UserAtomState>(userAtom);
+  const setUserInfo = useSetRecoilState<UserAtomState>(userAtom);
   const [postInputs, setPostInputs] = useState<SignupInput>({
     email: "",
     password: "",
     username: "",
   });
 
+  // Used to check the Recoil State updates
+  // useEffect(() => {
+  //   console.log("UserInfo state updated:", userInfo);
+  // }, [userInfo]);
+
   const sendRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
-    if (!postInputs.username || !postInputs.email || !postInputs.password) {
-      return setErrorMessage("Please fill out all fields.");
+
+    if (
+      type === "signup"
+        ? !postInputs.username || !postInputs.email || !postInputs.password
+        : !postInputs.email || !postInputs.password
+    ) {
+      setUserInfo((prev: UserAtomState) => ({
+        ...prev,
+        error: "Please fill out all fields.",
+      }));
+      return;
     }
+
     try {
-      setLoading(true);
-      setErrorMessage("");
+      setUserInfo((prev: UserAtomState) => ({
+        ...prev,
+        error: "",
+        loading: true,
+      }));
+
       const response = await axios.post(
         `${BACKEND_URL}/api/v1/user/${type === "signup" ? "signup" : "signin"}`,
         postInputs
@@ -31,18 +54,45 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
       console.log(response);
 
       if (response.data.success === false) {
-        return setErrorMessage(response.data.message);
+        setUserInfo((prev: UserAtomState) => ({
+          ...prev,
+          error: response.data.message,
+          loading: false,
+        }));
+        return;
       }
-      const jwt = response.data.jwt;
-      // console.log(jwt);
 
+      const jwt = response.data.jwt;
       localStorage.setItem("token", jwt);
-      setLoading(false);
-      navigate("/signin");
+
+      type === "signin"
+        ? setUserInfo((prev: UserAtomState) => ({
+            ...prev,
+            currentUser: response.data.user,
+          }))
+        : null;
+
+      setUserInfo((prev: UserAtomState) => ({
+        ...prev,
+        loading: false,
+      }));
+
+      type === "signup" ? navigate("/signin") : navigate("/");
     } catch (error: any) {
       console.log(error);
-      setErrorMessage(error.message);
-      setLoading(false);
+      // setErrorMessage(error.message);
+      // setLoading(false);
+
+      const errorMessage =
+        error.response?.data?.message ||
+        error.message ||
+        "An unexpected error occurred.";
+
+      setUserInfo((prev: UserAtomState) => ({
+        ...prev,
+        error: errorMessage,
+        loading: false,
+      }));
     }
   };
 
@@ -100,11 +150,11 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
         />
         <button
           onClick={sendRequest}
-          disabled={loading}
+          disabled={userInfo.loading}
           type="button"
           className="mt-4 w-full text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
         >
-          {loading ? (
+          {userInfo.loading ? (
             <>
               <Spinner size={"sm"} color="info" />
               <span className="pl-3">Loading...</span>
@@ -115,9 +165,9 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
             "Sign In"
           )}
         </button>
-        {errorMessage && (
+        {userInfo.error && (
           <Alert className="mt-5 w-full bg-red-200 text-red-600">
-            {errorMessage}
+            {userInfo.error}
           </Alert>
         )}
       </div>
