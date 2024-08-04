@@ -1,6 +1,6 @@
 import { SignupInput } from "@shreeraj1811/medium-common";
 import axios from "axios";
-import { ChangeEvent, useEffect, useState } from "react";
+import { ChangeEvent, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_URL, UserAtomState } from "../config";
 import { Alert, Button } from "flowbite-react";
