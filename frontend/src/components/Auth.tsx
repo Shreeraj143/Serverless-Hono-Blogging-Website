@@ -20,9 +20,9 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   });
 
   // Used to check the Recoil State updates
-  // useEffect(() => {
-  //   console.log("UserInfo state updated:", userInfo);
-  // }, [userInfo]);
+  useEffect(() => {
+    console.log("UserInfo state updated:", userInfo);
+  }, [userInfo]);
 
   const sendRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
