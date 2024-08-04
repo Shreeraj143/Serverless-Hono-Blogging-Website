@@ -3,9 +3,11 @@ import axios from "axios";
 import { ChangeEvent, useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BACKEND_URL, UserAtomState } from "../config";
-import { Alert, Spinner } from "flowbite-react";
+import { Alert, Button } from "flowbite-react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userAtom } from "../store/atoms";
+import { ImSpinner9 } from "react-icons/im";
+import OAuth from "./OAuth";
 
 export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   const navigate = useNavigate();
@@ -20,9 +22,9 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
   });
 
   // Used to check the Recoil State updates
-  useEffect(() => {
-    console.log("UserInfo state updated:", userInfo);
-  }, [userInfo]);
+  // useEffect(() => {
+  //   console.log("UserInfo state updated:", userInfo);
+  // }, [userInfo]);
 
   const sendRequest = async (e: React.MouseEvent<HTMLButtonElement>) => {
     e.preventDefault();
@@ -148,23 +150,25 @@ export const Auth = ({ type }: { type: "signup" | "signin" }) => {
             }));
           }}
         />
-        <button
+        <Button
           onClick={sendRequest}
           disabled={userInfo.loading}
-          type="button"
-          className="mt-4 w-full text-white bg-gray-800 hover:bg-gray-900 focus:outline-none font-medium rounded-lg text-sm px-5 py-2.5 me-2 mb-2 dark:bg-gray-800 dark:hover:bg-gray-700 dark:focus:ring-gray-700 dark:border-gray-700"
+          color={"dark"}
+          size={"lg"}
+          className="my-3"
         >
           {userInfo.loading ? (
-            <>
-              <Spinner size={"sm"} color="info" />
+            <div className="flex items-center">
+              <ImSpinner9 className="animate-spin text-lg" />
               <span className="pl-3">Loading...</span>
-            </>
+            </div>
           ) : type === "signup" ? (
             "Sign Up"
           ) : (
             "Sign In"
           )}
-        </button>
+        </Button>
+        <OAuth />
         {userInfo.error && (
           <Alert className="mt-5 w-full bg-red-200 text-red-600">
             {userInfo.error}

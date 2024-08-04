@@ -3,7 +3,7 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { signinInput, signupInput } from "@shreeraj1811/medium-common";
 import { Hono } from "hono";
 import { sign } from "hono/jwt";
-import bcryptjs, { hash } from "bcryptjs";
+import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error";
 
 export const userRouter = new Hono<{
@@ -104,6 +104,61 @@ userRouter.post("/signin", async (c) => {
     const { password, ...rest } = findUser;
 
     return c.json({ jwt, user: rest });
+  } catch (error: any) {
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Internal Server Error";
+    const name = error.name || "Internal Server Error";
+    return c.json(
+      {
+        success: false,
+        name,
+        statusCode,
+        message,
+      },
+      {
+        status: statusCode,
+      }
+    );
+  }
+});
+
+userRouter.post("/oauth", async (c) => {
+  const prisma = new PrismaClient({
+    log: ["query", "info", "warn", "error"],
+    datasourceUrl: c.env.DATABASE_URL,
+  }).$extends(withAccelerate());
+
+  try {
+    const body = await c.req.json();
+
+    const user = await prisma.user.findUnique({ where: { email: body.email } });
+
+    if (user) {
+      const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
+      const { password, ...rest } = user;
+      return c.json({ jwt, user: rest });
+    } else {
+      const generatedPassword =
+        Math.random().toString(36).slice(-8) +
+        Math.random().toString(36).slice(-8);
+      const hashedPassword = bcryptjs.hashSync(generatedPassword, 10);
+
+      const user = await prisma.user.create({
+        data: {
+          username:
+            body.username.toLowerCase().split(" ").join("") +
+            Math.random().toString(9).slice(-4),
+          email: body.email,
+          password: hashedPassword,
+          profilePicture: body.googlePhotoUrl,
+        },
+      });
+
+      const jwt = await sign({ id: user.id }, c.env.JWT_SECRET);
+      const { password, ...rest } = user;
+
+      return c.json({ jwt, user: rest });
+    }
   } catch (error: any) {
     const statusCode = error.statusCode || 500;
     const message = error.message || "Internal Server Error";

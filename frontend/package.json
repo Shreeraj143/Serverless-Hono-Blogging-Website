@@ -12,6 +12,7 @@
   "dependencies": {
     "@shreeraj1811/medium-common": "^1.0.1",
     "axios": "^1.7.2",
+    "firebase": "^10.12.5",
     "flowbite": "^2.4.1",
     "flowbite-react": "^0.10.1",
     "jodit-react": "^4.1.2",
