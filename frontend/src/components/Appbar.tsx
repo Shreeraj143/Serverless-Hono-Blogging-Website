@@ -1,11 +1,14 @@
-import { NavLink, useLocation } from "react-router-dom";
-import { Avatar } from "../components/BlogCard";
-import { Button, Navbar } from "flowbite-react";
+import { Link, NavLink, useLocation } from "react-router-dom";
+// import { Avatar } from "../components/BlogCard";
+import { Button, Navbar, Avatar, Dropdown } from "flowbite-react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon } from "react-icons/fa";
+import { useRecoilValue } from "recoil";
+import { userAtom } from "../store/atoms";
 
 export const Appbar = () => {
   const location = useLocation().pathname;
+  const userInfo = useRecoilValue(userAtom);
   return (
     <Navbar className="flex md:justify-between px-4 sm:px-6 md:px-10 py-4 border-b items-center">
       <NavLink to={"/"} className="text-lg">
@@ -25,17 +28,38 @@ export const Appbar = () => {
 
       <div className="flex md:gap-16 lg:gap-24 items-center md:order-2">
         <div className="flex gap-5 items-center justify-between">
-          <Avatar size="big" name={"Shreeraj"} />
           <div className="bg-slate-800 h-9 w-9 rounded-full flex items-center justify-center text-white">
             <FaMoon />
           </div>
+          {userInfo.currentUser && (
+            <Dropdown
+              arrowIcon={false}
+              inline
+              label={
+                <Avatar img={userInfo.currentUser?.profilePicture} rounded />
+              }
+            >
+              <Dropdown.Header>
+                <span className="block text-sm pb-1">
+                  @{userInfo.currentUser.username}
+                </span>
+                <span className="block text-sm pb-1 font-medium truncate">
+                  {userInfo.currentUser.email}
+                </span>
+              </Dropdown.Header>
+              <Link to={"/dashboard"}>
+                <Dropdown.Item>Profile</Dropdown.Item>
+              </Link>
+              <Dropdown.Divider />
+              <Dropdown.Item>Sign Out</Dropdown.Item>
+            </Dropdown>
+          )}
         </div>
         <Navbar.Toggle className="ml-3" />
       </div>
       <Navbar.Collapse>
         <Navbar.Link
           href="/"
-          active={location === "/"}
           className={
             location === "/"
               ? "text-blue-500 hover:text-blue-500"
@@ -46,7 +70,6 @@ export const Appbar = () => {
         </Navbar.Link>
         <Navbar.Link
           href="/about"
-          active={location === "/about"}
           className={
             location === "/about"
               ? "text-blue-500 hover:text-blue-500"
@@ -57,7 +80,6 @@ export const Appbar = () => {
         </Navbar.Link>
         <Navbar.Link
           href="/publish"
-          active={location === "/publish"}
           className={
             location === "/publish"
               ? "text-blue-500 hover:text-blue-500"
@@ -66,17 +88,18 @@ export const Appbar = () => {
         >
           Publish
         </Navbar.Link>
-        <Navbar.Link
-          href="/signup"
-          active={location === "/signup"}
-          className={
-            location === "/signup"
-              ? "text-blue-500 hover:text-blue-500"
-              : "hover:text-blue-500"
-          }
-        >
-          Sign Up
-        </Navbar.Link>
+        {!userInfo.currentUser && (
+          <Navbar.Link
+            href="/signup"
+            className={
+              location === "/signup"
+                ? "text-blue-500 hover:text-blue-500"
+                : "hover:text-blue-500"
+            }
+          >
+            Sign Up
+          </Navbar.Link>
+        )}
       </Navbar.Collapse>
     </Navbar>
   );
