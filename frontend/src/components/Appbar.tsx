@@ -3,12 +3,18 @@ import { Link, NavLink, useLocation } from "react-router-dom";
 import { Button, Navbar, Avatar, Dropdown } from "flowbite-react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { FaMoon } from "react-icons/fa";
-import { useRecoilValue } from "recoil";
-import { userAtom } from "../store/atoms";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { themeAtom, userAtom } from "../store/atoms";
+import { FiSun } from "react-icons/fi";
+import { useState } from "react";
 
 export const Appbar = () => {
   const location = useLocation().pathname;
   const userInfo = useRecoilValue(userAtom);
+  const theme = useRecoilValue(themeAtom);
+  const setTheme = useSetRecoilState(themeAtom);
+  const [hover, setHover] = useState(false);
+
   return (
     <Navbar className="flex md:justify-between px-4 sm:px-6 md:px-10 py-4 border-b items-center">
       <NavLink to={"/"} className="text-lg">
@@ -18,7 +24,7 @@ export const Appbar = () => {
         <input
           type="text"
           placeholder="Search..."
-          className="pr-10 py-2 border rounded-lg text-sm bg-gray-50 border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500"
+          className="pr-10 py-2 border rounded-lg text-sm bg-gray-50 border-gray-300 text-gray-900 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-white dark:placeholder-gray-400"
         />
         <AiOutlineSearch className="absolute right-3 text-xl text-gray-500" />
       </div>
@@ -28,9 +34,28 @@ export const Appbar = () => {
 
       <div className="flex md:gap-16 lg:gap-24 items-center md:order-2">
         <div className="flex gap-5 items-center justify-between">
-          <div className="bg-slate-800 h-9 w-9 rounded-full flex items-center justify-center text-white">
-            <FaMoon />
-          </div>
+          <button
+            onMouseEnter={() => setHover(true)}
+            onMouseLeave={() => setHover(false)}
+            onClick={() =>
+              setTheme((currVal: string) =>
+                currVal === "light" ? "dark" : "light"
+              )
+            }
+            className="bg-gray-100 dark:bg-slate-700 outline-none border-none h-10 w-10 rounded-full flex items-center justify-center text-gray-700"
+          >
+            {hover ? (
+              theme === "light" ? (
+                <FiSun className="h-5 w-5 text-yellow-300" />
+              ) : (
+                <FaMoon className="h-5 w-5 text-gray-900 dark:text-gray-100" />
+              )
+            ) : theme === "light" ? (
+              <FaMoon className="h-5 w-5" />
+            ) : (
+              <FiSun className="h-5 w-5 text-yellow-300" />
+            )}
+          </button>
           {userInfo.currentUser && (
             <Dropdown
               arrowIcon={false}

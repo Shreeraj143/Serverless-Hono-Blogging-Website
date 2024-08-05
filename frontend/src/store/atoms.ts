@@ -13,3 +13,9 @@ export const userAtom = atom<UserAtomState>({
   },
   effects_UNSTABLE: [persistAtom],
 });
+
+export const themeAtom = atom({
+  key: "themeChangeAtom",
+  default: "light",
+  effects_UNSTABLE: [persistAtom],
+});
