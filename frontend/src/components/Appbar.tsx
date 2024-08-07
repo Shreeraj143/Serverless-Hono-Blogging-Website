@@ -87,7 +87,7 @@ export const Appbar = () => {
           href="/"
           className={
             location === "/"
-              ? "text-blue-500 hover:text-blue-500"
+              ? "text-blue-500 hover:text-blue-500 dark:text-blue-500"
               : "hover:text-blue-500"
           }
         >
@@ -97,7 +97,7 @@ export const Appbar = () => {
           href="/about"
           className={
             location === "/about"
-              ? "text-blue-500 hover:text-blue-500"
+              ? "text-blue-500 hover:text-blue-500 dark:text-blue-500"
               : "hover:text-blue-500"
           }
         >
@@ -107,7 +107,7 @@ export const Appbar = () => {
           href="/publish"
           className={
             location === "/publish"
-              ? "text-blue-500 hover:text-blue-500"
+              ? "text-blue-500 hover:text-blue-500 dark:text-blue-500"
               : "hover:text-blue-500"
           }
         >
@@ -118,7 +118,7 @@ export const Appbar = () => {
             href="/signup"
             className={
               location === "/signup"
-                ? "text-blue-500 hover:text-blue-500"
+                ? "text-blue-500 hover:text-blue-500 dark:text-blue-500"
                 : "hover:text-blue-500"
             }
           >
