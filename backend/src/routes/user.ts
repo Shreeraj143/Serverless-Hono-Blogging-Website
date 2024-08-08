@@ -6,10 +6,10 @@ import {
   updateUser,
 } from "@shreeraj1811/medium-common";
 import { Hono } from "hono";
-import { jwt, sign, verify } from "hono/jwt";
+import { sign, verify } from "hono/jwt";
 import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error";
-import { blogRouter } from "./blog";
+import { authMiddleware } from "../utils/authMiddleware";
 
 export const userRouter = new Hono<{
   Bindings: {
@@ -185,38 +185,7 @@ userRouter.post("/oauth", async (c) => {
   }
 });
 
-userRouter.use("/update/*", async (c, next) => {
-  const token = c.req.header("authorization") || localStorage.getItem("token");
-  if (!token) {
-    throw errorHandler({ statusCode: 401, message: "Unauthorized" });
-  }
-  try {
-    const user = await verify(token, c.env.JWT_SECRET);
-    if (user) {
-      c.set("userId", user.id as string);
-      await next();
-    } else {
-      throw errorHandler({ statusCode: 403, message: "You are not logged in" });
-    }
-  } catch (error: any) {
-    const statusCode = error.statusCode || 500;
-    const message = error.message || "Internal Server Error";
-    const name = error.name || "Internal Server Error";
-    return c.json(
-      {
-        success: false,
-        name,
-        statusCode,
-        message,
-      },
-      {
-        status: statusCode,
-      }
-    );
-  }
-});
-
-userRouter.put("/update/:usrId", async (c) => {
+userRouter.put("/update/:usrId", authMiddleware, async (c) => {
   const { usrId } = c.req.param();
   const userId = c.get("userId");
   const body = await c.req.json();
@@ -261,6 +230,48 @@ userRouter.put("/update/:usrId", async (c) => {
     const { password, ...rest } = user;
     return c.json({ rest });
   } catch (error: any) {
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Internal Server Error";
+    const name = error.name || "Internal Server Error";
+    return c.json(
+      {
+        success: false,
+        name,
+        statusCode,
+        message,
+      },
+      {
+        status: statusCode,
+      }
+    );
+  }
+});
+
+userRouter.delete("/delete/:usrId", authMiddleware, async (c) => {
+  const { usrId } = c.req.param();
+  const userId = c.get("userId");
+
+  if (userId != usrId) {
+    throw errorHandler({
+      statusCode: 403,
+      message: "You are not allowed to delete this user",
+    });
+  }
+
+  try {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+      log: ["query", "error", "info", "warn"],
+    }).$extends(withAccelerate());
+
+    await prisma.user.delete({
+      where: { id: userId },
+    });
+
+    c.status(200);
+    return c.json("User Deleted Successfully");
+  } catch (error: any) {
+    // console.log("Error during user creation:", error);
     const statusCode = error.statusCode || 500;
     const message = error.message || "Internal Server Error";
     const name = error.name || "Internal Server Error";
