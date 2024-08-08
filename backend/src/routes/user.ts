@@ -199,8 +199,21 @@ userRouter.use("/update/*", async (c, next) => {
     } else {
       throw errorHandler({ statusCode: 403, message: "You are not logged in" });
     }
-  } catch (error) {
-    throw errorHandler({ statusCode: 403, message: "You are not logged in" });
+  } catch (error: any) {
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Internal Server Error";
+    const name = error.name || "Internal Server Error";
+    return c.json(
+      {
+        success: false,
+        name,
+        statusCode,
+        message,
+      },
+      {
+        status: statusCode,
+      }
+    );
   }
 });
 
@@ -209,40 +222,57 @@ userRouter.put("/update/:usrId", async (c) => {
   const userId = c.get("userId");
   const body = await c.req.json();
 
-  if (userId !== usrId) {
-    throw errorHandler({
-      statusCode: 403,
-      message: "You are not allowed to update this user",
+  try {
+    if (userId !== usrId) {
+      throw errorHandler({
+        statusCode: 403,
+        message: "You are not allowed to update this user",
+      });
+    }
+
+    if (body.username.includes(" ")) {
+      throw errorHandler({
+        statusCode: 400,
+        message: "Username cannot contain spaces",
+      });
+    }
+
+    const { success } = updateUser.safeParse(body);
+    if (!success) {
+      throw errorHandler({ statusCode: 411, message: "Invalid Inputs" });
+    }
+
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+      log: ["query", "error", "info", "warn"],
+    }).$extends(withAccelerate());
+
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: {
+        username: body.username,
+        email: body.email,
+        password: body.password,
+        profilePicture: body.profilePicture,
+      },
     });
+
+    const { password, ...rest } = user;
+    return c.json({ rest });
+  } catch (error: any) {
+    const statusCode = error.statusCode || 500;
+    const message = error.message || "Internal Server Error";
+    const name = error.name || "Internal Server Error";
+    return c.json(
+      {
+        success: false,
+        name,
+        statusCode,
+        message,
+      },
+      {
+        status: statusCode,
+      }
+    );
   }
-
-  if (body.username.includes(" ")) {
-    throw errorHandler({
-      statusCode: 400,
-      message: "Username cannot contain spaces",
-    });
-  }
-
-  const { success } = updateUser.safeParse(body);
-  if (!success) {
-    throw errorHandler({ statusCode: 411, message: "Invalid Inputs" });
-  }
-
-  const prisma = new PrismaClient({
-    datasourceUrl: c.env.DATABASE_URL,
-    log: ["query", "error", "info", "warn"],
-  }).$extends(withAccelerate());
-
-  const user = await prisma.user.update({
-    where: { id: userId },
-    data: {
-      username: body.username,
-      email: body.email,
-      password: body.password,
-      profilePicture: body.profilePicture,
-    },
-  });
-
-  const { password, ...rest } = user;
-  return c.json({ rest });
 });
