@@ -1,15 +1,23 @@
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
-import { signinInput, signupInput } from "@shreeraj1811/medium-common";
+import {
+  signinInput,
+  signupInput,
+  updateUser,
+} from "@shreeraj1811/medium-common";
 import { Hono } from "hono";
-import { sign } from "hono/jwt";
+import { jwt, sign, verify } from "hono/jwt";
 import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error";
+import { blogRouter } from "./blog";
 
 export const userRouter = new Hono<{
   Bindings: {
     DATABASE_URL: string;
     JWT_SECRET: string;
+  };
+  Variables: {
+    userId: string;
   };
 }>();
 
@@ -175,4 +183,66 @@ userRouter.post("/oauth", async (c) => {
       }
     );
   }
+});
+
+userRouter.use("/update/*", async (c, next) => {
+  const token = c.req.header("authorization") || localStorage.getItem("token");
+  if (!token) {
+    throw errorHandler({ statusCode: 401, message: "Unauthorized" });
+  }
+  try {
+    const user = await verify(token, c.env.JWT_SECRET);
+    console.log(user);
+    if (user) {
+      c.set("userId", user.id as string);
+      await next();
+    } else {
+      throw errorHandler({ statusCode: 403, message: "You are not logged in" });
+    }
+  } catch (error) {
+    throw errorHandler({ statusCode: 403, message: "You are not logged in" });
+  }
+});
+
+userRouter.put("/update/:usrId", async (c) => {
+  const { usrId } = c.req.param();
+  const userId = c.get("userId");
+  const body = await c.req.json();
+
+  if (userId !== usrId) {
+    throw errorHandler({
+      statusCode: 403,
+      message: "You are not allowed to update this user",
+    });
+  }
+
+  if (body.username.includes(" ")) {
+    throw errorHandler({
+      statusCode: 400,
+      message: "Username cannot contain spaces",
+    });
+  }
+
+  const { success } = updateUser.safeParse(body);
+  if (!success) {
+    throw errorHandler({ statusCode: 411, message: "Invalid Inputs" });
+  }
+
+  const prisma = new PrismaClient({
+    datasourceUrl: c.env.DATABASE_URL,
+    log: ["query", "error", "info", "warn"],
+  }).$extends(withAccelerate());
+
+  const user = await prisma.user.update({
+    where: { id: userId },
+    data: {
+      username: body.username,
+      email: body.email,
+      password: body.password,
+      profilePicture: body.profilePicture,
+    },
+  });
+
+  const { password, ...rest } = user;
+  return c.json({ rest });
 });

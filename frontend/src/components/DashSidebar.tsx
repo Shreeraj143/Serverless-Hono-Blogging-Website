@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { CustomFlowbiteTheme, Flowbite, Sidebar } from "flowbite-react";
 import { HiArrowSmRight, HiUser } from "react-icons/hi";
-import { useLocation } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 
 const customTheme: CustomFlowbiteTheme = {
   sidebar: {
@@ -28,14 +28,17 @@ export default function DashSidebar() {
       <Sidebar>
         <Sidebar.Items>
           <Sidebar.ItemGroup>
-            <Sidebar.Item
-              icon={HiUser}
-              label="User"
-              labelColor="dark"
-              active={tab === "profile"}
-            >
-              Profile
-            </Sidebar.Item>
+            <Link to={"/dashboard?tab=profile"}>
+              <Sidebar.Item
+                icon={HiUser}
+                label="User"
+                labelColor="dark"
+                active={tab === "profile"}
+                as="div"
+              >
+                Profile
+              </Sidebar.Item>
+            </Link>
             <Sidebar.Item icon={HiArrowSmRight} className="cursor-pointer">
               Sign Out
             </Sidebar.Item>

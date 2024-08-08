@@ -11,6 +11,13 @@ export const signinInput = z.object({
   password: z.string().min(6),
 });
 
+export const updateUser = z.object({
+  email: z.string().email().optional(),
+  username: z.string().optional(),
+  password: z.string().min(6).optional(),
+  profilePicture: z.string().optional(),
+});
+
 export const createBlogInput = z.object({
   title: z.string(),
   content: z.string(),
@@ -26,3 +33,4 @@ export type SignupInput = z.infer<typeof signupInput>;
 export type SigninInput = z.infer<typeof signinInput>;
 export type CreateBlogInput = z.infer<typeof createBlogInput>;
 export type UpdateBlogInput = z.infer<typeof updateBlogInput>;
+export type UpdateUser = z.infer<typeof updateUser>;

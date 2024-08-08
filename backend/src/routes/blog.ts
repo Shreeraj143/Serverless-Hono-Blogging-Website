@@ -3,6 +3,7 @@ import { withAccelerate } from "@prisma/extension-accelerate";
 import { createBlogInput, updateBlogInput } from "@shreeraj1811/medium-common";
 import { Hono } from "hono";
 import { verify } from "hono/jwt";
+import { errorHandler } from "../utils/error";
 
 export const blogRouter = new Hono<{
   Bindings: {
@@ -10,7 +11,7 @@ export const blogRouter = new Hono<{
     JWT_SECRET: string;
   };
   Variables: {
-    userId: string;
+    authorId: string;
   };
 }>();
 
@@ -19,19 +20,13 @@ blogRouter.use("/*", async (c, next) => {
   try {
     const user = await verify(authHeader, c.env.JWT_SECRET);
     if (user && typeof user.id === "string") {
-      c.set("userId", user.id as string); // Cast user.id to string
+      c.set("authorId", user.id as string); // Cast user.id to string
       await next();
     } else {
-      c.status(403);
-      return c.json({
-        message: "You are not logged in",
-      });
+      throw errorHandler({ statusCode: 403, message: "You are not logged in" });
     }
   } catch (e) {
-    c.status(403);
-    return c.json({
-      message: "You are not logged in",
-    });
+    throw errorHandler({ statusCode: 403, message: "You are not logged in" });
   }
 });
 
@@ -52,7 +47,7 @@ blogRouter.post("/", async (c) => {
     log: ["query", "info", "warn", "error"],
   }).$extends(withAccelerate());
 
-  const authorId = c.get("userId");
+  const authorId = c.get("authorId");
   console.log(authorId);
 
   const post = await prisma.post.create({
