@@ -192,7 +192,6 @@ userRouter.use("/update/*", async (c, next) => {
   }
   try {
     const user = await verify(token, c.env.JWT_SECRET);
-    console.log(user);
     if (user) {
       c.set("userId", user.id as string);
       await next();
@@ -230,7 +229,7 @@ userRouter.put("/update/:usrId", async (c) => {
       });
     }
 
-    if (body.username.includes(" ")) {
+    if (body.username?.includes(" ")) {
       throw errorHandler({
         statusCode: 400,
         message: "Username cannot contain spaces",
@@ -242,6 +241,8 @@ userRouter.put("/update/:usrId", async (c) => {
       throw errorHandler({ statusCode: 411, message: "Invalid Inputs" });
     }
 
+    const hashedPassword = bcryptjs.hashSync(body.password, 10);
+
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
       log: ["query", "error", "info", "warn"],
@@ -252,7 +253,7 @@ userRouter.put("/update/:usrId", async (c) => {
       data: {
         username: body.username,
         email: body.email,
-        password: body.password,
+        password: hashedPassword,
         profilePicture: body.profilePicture,
       },
     });

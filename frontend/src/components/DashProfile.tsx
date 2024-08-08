@@ -1,7 +1,7 @@
-import { useRecoilValue } from "recoil";
+import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userAtom } from "../store/atoms";
-import { Alert, Button, TextInput } from "flowbite-react";
-import { useEffect, useRef, useState } from "react";
+import { Alert, Button, Spinner, TextInput } from "flowbite-react";
+import React, { useEffect, useRef, useState } from "react";
 import { app } from "../firebase";
 import {
   getDownloadURL,
@@ -11,6 +11,8 @@ import {
 } from "firebase/storage";
 import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
+import { BACKEND_URL, UserAtomState } from "../config";
+import axios from "axios";
 
 export default function DashProfile() {
   const user = useRecoilValue(userAtom);
@@ -24,6 +26,15 @@ export default function DashProfile() {
   >(null);
   const filePickerRef = useRef<HTMLInputElement>(null);
 
+  const [formData, setFormData] = useState({});
+  const setUser = useSetRecoilState<UserAtomState>(userAtom);
+  const [updateUserSuccess, setUpdateUserSuccess] = useState<string | null>(
+    null
+  );
+  const [imageFileUploading, setImageFileUploading] = useState(false);
+  const [updateUserError, setUpdateUserError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     console.log(file);
@@ -35,12 +46,17 @@ export default function DashProfile() {
   };
 
   useEffect(() => {
+    console.log(user.currentUser);
+  }, [user.currentUser]);
+
+  useEffect(() => {
     if (imageFile) {
       uploadFile(imageFile);
     }
   }, [imageFile]);
 
   const uploadFile = async (file: File) => {
+    setImageFileUploading(true);
     setImageFileUploadError(null);
     const storage = getStorage(app);
     const fileName = new Date().getTime() + (imageFile?.name || "");
@@ -70,20 +86,80 @@ export default function DashProfile() {
         setImageFileUploadProgress(null);
         setImageFile(null);
         setImageFileUrl(null);
+        setImageFileUploading(false);
         // console.log(imageFileUploadError, imageFile, imageFileUrl);
       },
       () => {
         getDownloadURL(uploadTask.snapshot.ref).then((downloadUrl) => {
           setImageFileUrl(downloadUrl);
+          setFormData({ ...formData, profilePicture: downloadUrl });
+          setImageFileUploading(false);
         });
       }
     );
   };
 
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.id]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setUpdateUserError(null);
+    setUpdateUserSuccess(null);
+    setLoading(false);
+    if (Object.keys(formData).length === 0) {
+      setUpdateUserError("No changes made");
+      return;
+    }
+    try {
+      setLoading(true);
+      const response = await axios.put(
+        `${BACKEND_URL}/api/v1/user/update/${user.currentUser?.id}`,
+        formData,
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
+        }
+      );
+      const data = await response.data;
+      console.log(data);
+
+      if (response.status != 200) {
+        setUpdateUserError(data.message);
+        setLoading(false);
+      } else {
+        setUser((prev) => ({
+          ...prev,
+          currentUser: data.rest,
+        }));
+        setUpdateUserSuccess("User's profile updated successfully");
+        setLoading(false);
+      }
+    } catch (error: any) {
+      //   console.error("Error during update:", error);
+      if (error.response) {
+        // Server responded with a status other than 2xx
+        setUpdateUserError(
+          error.response.data.message || "Something went wrong"
+        );
+      } else if (error.request) {
+        // Request was made but no response received
+        setUpdateUserError("No response from server. Please try again later.");
+      } else {
+        // Something else happened in setting up the request
+        setUpdateUserError(error.message || "An unknown error occurred");
+      }
+      setLoading(false);
+      //   console.log(updateUserError);
+    }
+  };
+
   return (
     <div className="max-w-lg mx-auto p-3 w-full">
       <h1 className="my-7 text-3xl font-semibold text-center">Profile</h1>
-      <form className="flex flex-col gap-4">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <input
           type="file"
           accept="images/*"
@@ -134,22 +210,40 @@ export default function DashProfile() {
           id="username"
           placeholder="Username"
           defaultValue={user.currentUser?.username}
+          onChange={handleChange}
         />
         <TextInput
           type="email"
           id="email"
           placeholder="Email"
           defaultValue={user.currentUser?.email}
+          onChange={handleChange}
         />
-        <TextInput type="password" id="password" placeholder="Password" />
+        <TextInput
+          type="password"
+          id="password"
+          placeholder="Password"
+          onChange={handleChange}
+        />
         <Button color={"dark"} type="submit">
           Update
         </Button>
       </form>
       <div className="flex justify-between text-red-500 mt-5">
-        <div className="cursor-pointer">Delete Account</div>
-        <div className="cursor-pointer">Sign Out</div>
+        <span className="cursor-pointer">Delete Account</span>
+        <span className="cursor-pointer">Sign Out</span>
       </div>
+      {loading && <Spinner color={"info"} className="mt-7 w-full mx-auto" />}
+      {updateUserSuccess && (
+        <Alert color="success" className="mt-5">
+          {updateUserSuccess}
+        </Alert>
+      )}
+      {updateUserError && (
+        <Alert color="failure" className="mt-5">
+          {updateUserError}
+        </Alert>
+      )}
     </div>
   );
 }
