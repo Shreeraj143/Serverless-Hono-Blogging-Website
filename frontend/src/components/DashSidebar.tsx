@@ -2,6 +2,9 @@ import { useEffect, useState } from "react";
 import { CustomFlowbiteTheme, Flowbite, Sidebar } from "flowbite-react";
 import { HiArrowSmRight, HiUser } from "react-icons/hi";
 import { Link, useLocation } from "react-router-dom";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { userAtom } from "../store/atoms";
+import { UserAtomState } from "../config";
 
 const customTheme: CustomFlowbiteTheme = {
   sidebar: {
@@ -14,6 +17,8 @@ const customTheme: CustomFlowbiteTheme = {
 export default function DashSidebar() {
   const location = useLocation();
   const [tab, setTab] = useState("");
+  const [loading, setLoading] = useState(false);
+  const setUser = useSetRecoilState<UserAtomState>(userAtom);
 
   useEffect(() => {
     const urlParams = new URLSearchParams(location.search);
@@ -22,6 +27,19 @@ export default function DashSidebar() {
       setTab(tabFromUrl);
     }
   }, [location.search]);
+
+  const handleSignout = () => {
+    setLoading(true);
+    try {
+      localStorage.removeItem("token");
+      setUser((prev) => ({
+        ...prev,
+        currentUser: null,
+      }));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Flowbite theme={{ theme: customTheme }}>
@@ -39,7 +57,11 @@ export default function DashSidebar() {
                 Profile
               </Sidebar.Item>
             </Link>
-            <Sidebar.Item icon={HiArrowSmRight} className="cursor-pointer">
+            <Sidebar.Item
+              icon={HiArrowSmRight}
+              className="cursor-pointer"
+              onClick={handleSignout}
+            >
               Sign Out
             </Sidebar.Item>
           </Sidebar.ItemGroup>

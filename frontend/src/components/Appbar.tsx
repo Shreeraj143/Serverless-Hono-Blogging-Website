@@ -7,6 +7,7 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { themeAtom, userAtom } from "../store/atoms";
 import { FiSun } from "react-icons/fi";
 import { useState } from "react";
+import { UserAtomState } from "../config";
 
 export const Appbar = () => {
   const location = useLocation().pathname;
@@ -14,6 +15,21 @@ export const Appbar = () => {
   const theme = useRecoilValue(themeAtom);
   const setTheme = useSetRecoilState(themeAtom);
   const [hover, setHover] = useState(false);
+  const setUser = useSetRecoilState<UserAtomState>(userAtom);
+  const [loading, setLoading] = useState(false);
+
+  const handleSignout = () => {
+    setLoading(true);
+    try {
+      localStorage.removeItem("token");
+      setUser((prev) => ({
+        ...prev,
+        currentUser: null,
+      }));
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <Navbar className="flex md:justify-between px-4 sm:px-6 md:px-10 py-4 border-b items-center">
@@ -76,7 +92,7 @@ export const Appbar = () => {
                 <Dropdown.Item>Profile</Dropdown.Item>
               </Link>
               <Dropdown.Divider />
-              <Dropdown.Item>Sign Out</Dropdown.Item>
+              <Dropdown.Item onClick={handleSignout}>Sign Out</Dropdown.Item>
             </Dropdown>
           )}
         </div>

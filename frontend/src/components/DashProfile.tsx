@@ -1,6 +1,6 @@
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { userAtom } from "../store/atoms";
-import { Alert, Button, Spinner, TextInput } from "flowbite-react";
+import { Alert, Button, Modal, Spinner, TextInput } from "flowbite-react";
 import React, { useEffect, useRef, useState } from "react";
 import { app } from "../firebase";
 import {
@@ -13,6 +13,7 @@ import { CircularProgressbar } from "react-circular-progressbar";
 import "react-circular-progressbar/dist/styles.css";
 import { BACKEND_URL, UserAtomState } from "../config";
 import axios from "axios";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 export default function DashProfile() {
   const user = useRecoilValue(userAtom);
@@ -34,20 +35,25 @@ export default function DashProfile() {
   const [imageFileUploading, setImageFileUploading] = useState(false);
   const [updateUserError, setUpdateUserError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     console.log(file);
 
-    if (file) {
+    if (file && file.size < 3 * 1024 * 1024 && file.type.startsWith("/image")) {
       setImageFile(file);
       setImageFileUrl(URL.createObjectURL(file));
+    } else {
+      setImageFileUploadError(
+        "Invalid file. Please upload an image less than 2MB."
+      );
     }
   };
 
   useEffect(() => {
     console.log(user.currentUser);
-  }, [user.currentUser]);
+  }, [user]);
 
   useEffect(() => {
     if (imageFile) {
@@ -99,6 +105,19 @@ export default function DashProfile() {
     );
   };
 
+  const handleAxiosError = (error: any) => {
+    if (error.response) {
+      // Server responded with a status other than 2xx
+      setUpdateUserError(error.response.data.message || "Something went wrong");
+    } else if (error.request) {
+      // Request was made but no response received
+      setUpdateUserError("No response from server. Please try again later.");
+    } else {
+      // Something else happened in setting up the request
+      setUpdateUserError(error.message || "An unknown error occurred");
+    }
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.id]: e.target.value });
   };
@@ -128,31 +147,59 @@ export default function DashProfile() {
 
       if (response.status != 200) {
         setUpdateUserError(data.message);
-        setLoading(false);
       } else {
         setUser((prev) => ({
           ...prev,
           currentUser: data.rest,
         }));
         setUpdateUserSuccess("User's profile updated successfully");
-        setLoading(false);
       }
     } catch (error: any) {
-      //   console.error("Error during update:", error);
-      if (error.response) {
-        // Server responded with a status other than 2xx
-        setUpdateUserError(
-          error.response.data.message || "Something went wrong"
-        );
-      } else if (error.request) {
-        // Request was made but no response received
-        setUpdateUserError("No response from server. Please try again later.");
-      } else {
-        // Something else happened in setting up the request
-        setUpdateUserError(error.message || "An unknown error occurred");
-      }
+      handleAxiosError(error);
+    } finally {
       setLoading(false);
-      //   console.log(updateUserError);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    setShowModal(false);
+    try {
+      setLoading(true);
+      const response = await axios.delete(
+        `${BACKEND_URL}/api/v1/user/delete/${user.currentUser?.id}`,
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
+        }
+      );
+      const data = response.data;
+
+      if (response.status != 200) {
+        setUpdateUserError(data.message);
+      } else {
+        setUser((prev) => ({
+          ...prev,
+          currentUser: null,
+        }));
+      }
+    } catch (error: any) {
+      handleAxiosError(error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleSignout = () => {
+    setLoading(true);
+    try {
+      localStorage.removeItem("token");
+      setUser((prev) => ({
+        ...prev,
+        currentUser: null,
+      }));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -230,8 +277,12 @@ export default function DashProfile() {
         </Button>
       </form>
       <div className="flex justify-between text-red-500 mt-5">
-        <span className="cursor-pointer">Delete Account</span>
-        <span className="cursor-pointer">Sign Out</span>
+        <span className="cursor-pointer" onClick={() => setShowModal(true)}>
+          Delete Account
+        </span>
+        <span className="cursor-pointer" onClick={handleSignout}>
+          Sign Out
+        </span>
       </div>
       {loading && <Spinner color={"info"} className="mt-7 w-full mx-auto" />}
       {updateUserSuccess && (
@@ -244,6 +295,30 @@ export default function DashProfile() {
           {updateUserError}
         </Alert>
       )}
+      <Modal
+        show={showModal}
+        size="md"
+        onClose={() => setShowModal(false)}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete this product?
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button color="failure" onClick={handleDeleteUser}>
+                {"Yes, I'm sure"}
+              </Button>
+              <Button color="gray" onClick={() => setShowModal(false)}>
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
