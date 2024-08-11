@@ -14,6 +14,7 @@ import "react-circular-progressbar/dist/styles.css";
 import { BACKEND_URL, UserAtomState } from "../config";
 import axios from "axios";
 import { HiOutlineExclamationCircle } from "react-icons/hi";
+import { Link } from "react-router-dom";
 
 export default function DashProfile() {
   const user = useRecoilValue(userAtom);
@@ -272,9 +273,18 @@ export default function DashProfile() {
           placeholder="Password"
           onChange={handleChange}
         />
-        <Button color={"dark"} type="submit">
-          Update
+        <Button
+          color={"dark"}
+          type="submit"
+          disabled={loading || imageFileUploading}
+        >
+          {loading ? "Loading..." : "Update"}
         </Button>
+        <Link to={"/publish"}>
+          <Button className="w-full" color={"dark"}>
+            Create a blog
+          </Button>
+        </Link>
       </form>
       <div className="flex justify-between text-red-500 mt-5">
         <span className="cursor-pointer" onClick={() => setShowModal(true)}>

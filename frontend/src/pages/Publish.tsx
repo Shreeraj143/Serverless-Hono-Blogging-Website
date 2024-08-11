@@ -2,66 +2,65 @@ import axios from "axios";
 import { BACKEND_URL } from "../config";
 import { useNavigate } from "react-router-dom";
 import { useRef, useState } from "react";
-import JoditEditor from "jodit-react";
+import { Button, FileInput, Select, TextInput } from "flowbite-react";
+import ReactQuill from "react-quill";
+import "react-quill/dist/quill.snow.css";
 
 export const Publish = () => {
-  const editor = useRef(null);
-  const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const navigate = useNavigate();
-
+  const [formData, setFormData] = useState({});
   return (
-    <div>
-      <div className="flex justify-center w-full pt-8">
-        <div className="max-w-screen-lg w-full">
-          <input
-            onChange={(e) => {
-              setTitle(e.target.value);
-            }}
+    <div className="p-3 max-w-3xl mx-auto min-h-screen">
+      <h1 className="text-center text-3xl my-7 font-semibold">Create a post</h1>
+      <form className="flex flex-col gap-4">
+        <div className="flex flex-col gap-4 sm:flex-row justify-between">
+          <TextInput
             type="text"
-            className="w-full bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block p-2.5"
             placeholder="Title"
+            required
+            id="title"
+            className="flex-1"
+            onChange={(e) =>
+              setFormData({ ...formData, title: e.target.value })
+            }
           />
-
-          <div className="mt-5">
-            <div className="w-full mb-4">
-              <div className="flex items-center justify-between border">
-                <div className="my-2 bg-white rounded-b-lg w-full">
-                  <label className="sr-only">Publish post</label>
-                  <JoditEditor
-                    ref={editor}
-                    value={description}
-                    onChange={(newDescription) =>
-                      setDescription(newDescription)
-                    }
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-          <button
-            onClick={async () => {
-              const response = await axios.post(
-                `${BACKEND_URL}/api/v1/blog`,
-                {
-                  title,
-                  content: description,
-                },
-                {
-                  headers: {
-                    Authorization: localStorage.getItem("token"),
-                  },
-                }
-              );
-              navigate(`/blog/${response.data.id}`);
-            }}
-            type="submit"
-            className="mt-4 inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg focus:ring-4 focus:ring-blue-200 dark:focus:ring-blue-900 hover:bg-blue-800"
+          <Select
+            onChange={(e) =>
+              setFormData({ ...formData, category: e.target.value })
+            }
           >
-            Publish post
-          </button>
+            <option value="uncategorized">Select a category</option>
+            <option value="javascript">JavaScript</option>
+            <option value="reactjs">React.js</option>
+            <option value="nextjs">Next.js</option>
+            <option value="nodejs">NodeJs</option>
+            <option value="entertainment">Entertainment</option>
+            <option value="bollywood">Bollywood</option>
+            <option value="sports">Sports</option>
+            <option value="web-development">Web Development</option>
+            <option value="technology">Technology</option>
+            <option value="education">Education</option>
+          </Select>
         </div>
-      </div>
+        <div className="flex gap-4 items-center justify-between border-4 border-teal-500 border-dotted p-3">
+          <FileInput accept="image/*" />
+          <Button
+            type="button"
+            gradientDuoTone="purpleToBlue"
+            size="sm"
+            outline
+          >
+            Upload image
+          </Button>
+        </div>
+        <ReactQuill
+          theme="snow"
+          placeholder="Write something..."
+          className="h-72 mb-12"
+        />
+        <Button type="submit" color={"blue"}>
+          Publish
+        </Button>
+      </form>
     </div>
   );
 };
