@@ -15,3 +15,10 @@ export interface UserAtomState {
   loading: boolean;
   error: string | null;
 }
+
+export interface BlogFormData {
+  title?: string;
+  category?: string;
+  image?: string;
+  content?: string;
+}

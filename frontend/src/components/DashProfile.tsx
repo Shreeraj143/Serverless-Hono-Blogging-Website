@@ -42,7 +42,7 @@ export default function DashProfile() {
     const file = e.target.files?.[0];
     console.log(file);
 
-    if (file && file.size < 3 * 1024 * 1024 && file.type.startsWith("/image")) {
+    if (file && file.size < 3 * 1024 * 1024 && file.type.startsWith("image/")) {
       setImageFile(file);
       setImageFileUrl(URL.createObjectURL(file));
     } else {
@@ -88,7 +88,7 @@ export default function DashProfile() {
       },
       (error) => {
         setImageFileUploadError(
-          "Could not upload image (File must be image and less than 2MB)"
+          "Could not upload image (File must be image and less than 3MB)"
         );
         setImageFileUploadProgress(null);
         setImageFile(null);
