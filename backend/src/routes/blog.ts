@@ -50,10 +50,21 @@ blogRouter.post("/", async (c) => {
   const authorId = c.get("authorId");
   console.log(authorId);
 
+  const slug = body.title
+    .split(" ")
+    .join("-")
+    .toLowerCase()
+    .replace(/[^a-zA-Z0-9-]/g, "");
+
+  console.log(slug);
+
   const post = await prisma.post.create({
     data: {
       title: body.title,
       content: body.content,
+      category: body.category,
+      image: body.image,
+      slug,
       authorId: authorId,
     },
   });

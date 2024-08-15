@@ -21,12 +21,16 @@ export const updateUser = z.object({
 export const createBlogInput = z.object({
   title: z.string(),
   content: z.string(),
+  category: z.string(),
+  image: z.string(),
 });
 
 export const updateBlogInput = z.object({
   title: z.string(),
   content: z.string(),
   id: z.string(),
+  category: z.string(),
+  image: z.string(),
 });
 
 export type SignupInput = z.infer<typeof signupInput>;

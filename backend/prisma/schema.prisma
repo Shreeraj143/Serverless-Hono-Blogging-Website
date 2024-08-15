@@ -26,9 +26,14 @@ model User {
 
 model Post {
   id            String    @id @default(uuid())
-  title         String
+  title         String    @unique
   content       String
+  category      String    @default("uncategorized")
+  slug          String    @unique
+  image         String    @default("https://www.hostinger.com/tutorials/wp-content/uploads/sites/2/2021/09/how-to-write-a-blog-post.png")
   published     Boolean   @default(false)
   authorId      String
   author        User      @relation(fields: [authorId], references: [id])
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
 }

@@ -23,6 +23,7 @@ export const Publish = () => {
   const [imageUploadError, setImageUploadError] = useState<string | null>(null);
   const [formData, setFormData] = useState<BlogFormData>();
   const [publishError, setPublishError] = useState<string | null>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     console.log(formData);
@@ -86,10 +87,36 @@ export const Publish = () => {
       console.log(error);
     }
   };
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    try {
+      const response = await axios.post(
+        `${BACKEND_URL}/api/v1/blog`,
+        formData,
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
+        }
+      );
+      const data = response.data;
+
+      if (response.status != 200) {
+        setPublishError(data.message);
+        return;
+      } else {
+        setPublishError(null);
+        navigate(`/post/${data.id}`);
+      }
+    } catch (error) {
+      setPublishError("Something went wrong");
+    }
+  };
   return (
     <div className="p-3 max-w-3xl mx-auto min-h-screen">
       <h1 className="text-center text-3xl my-7 font-semibold">Create a post</h1>
-      <form className="flex flex-col gap-4">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <div className="flex flex-col gap-4 sm:flex-row justify-between">
           <TextInput
             type="text"
@@ -160,6 +187,11 @@ export const Publish = () => {
         <Button type="submit" color={"blue"}>
           Publish
         </Button>
+        {publishError && (
+          <Alert className="my-5" color={"failure"}>
+            {publishError}
+          </Alert>
+        )}
       </form>
     </div>
   );
