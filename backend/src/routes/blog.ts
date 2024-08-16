@@ -139,6 +139,8 @@ blogRouter.get("/bulk", async (c) => {
         category: true,
         slug: true,
         content: true,
+        createdAt: true,
+        updatedAt: true,
         image: true,
         author: {
           select: {
