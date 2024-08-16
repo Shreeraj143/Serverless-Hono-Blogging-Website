@@ -10,6 +10,7 @@ import { sign, verify } from "hono/jwt";
 import bcryptjs from "bcryptjs";
 import { errorHandler } from "../utils/error";
 import { authMiddleware } from "../utils/authMiddleware";
+import { catchErrorHandler } from "../utils/catchErrorHandler";
 
 export const userRouter = new Hono<{
   Bindings: {
@@ -53,21 +54,7 @@ userRouter.post("/signup", async (c) => {
       // id: user.id,
     });
   } catch (error: any) {
-    // console.log("Error during user creation:", error);
-    const statusCode = error.statusCode || 500;
-    const message = error.message || "Internal Server Error";
-    const name = error.name || "Internal Server Error";
-    return c.json(
-      {
-        success: false,
-        name,
-        statusCode,
-        message,
-      },
-      {
-        status: statusCode,
-      }
-    );
+    return catchErrorHandler(c, error);
   }
 });
 
@@ -113,20 +100,7 @@ userRouter.post("/signin", async (c) => {
 
     return c.json({ jwt, user: rest });
   } catch (error: any) {
-    const statusCode = error.statusCode || 500;
-    const message = error.message || "Internal Server Error";
-    const name = error.name || "Internal Server Error";
-    return c.json(
-      {
-        success: false,
-        name,
-        statusCode,
-        message,
-      },
-      {
-        status: statusCode,
-      }
-    );
+    return catchErrorHandler(c, error);
   }
 });
 
@@ -168,20 +142,7 @@ userRouter.post("/oauth", async (c) => {
       return c.json({ jwt, user: rest });
     }
   } catch (error: any) {
-    const statusCode = error.statusCode || 500;
-    const message = error.message || "Internal Server Error";
-    const name = error.name || "Internal Server Error";
-    return c.json(
-      {
-        success: false,
-        name,
-        statusCode,
-        message,
-      },
-      {
-        status: statusCode,
-      }
-    );
+    return catchErrorHandler(c, error);
   }
 });
 
@@ -230,20 +191,7 @@ userRouter.put("/update/:usrId", authMiddleware, async (c) => {
     const { password, ...rest } = user;
     return c.json({ rest });
   } catch (error: any) {
-    const statusCode = error.statusCode || 500;
-    const message = error.message || "Internal Server Error";
-    const name = error.name || "Internal Server Error";
-    return c.json(
-      {
-        success: false,
-        name,
-        statusCode,
-        message,
-      },
-      {
-        status: statusCode,
-      }
-    );
+    return catchErrorHandler(c, error);
   }
 });
 
@@ -272,19 +220,6 @@ userRouter.delete("/delete/:usrId", authMiddleware, async (c) => {
     return c.json("User Deleted Successfully");
   } catch (error: any) {
     // console.log("Error during user creation:", error);
-    const statusCode = error.statusCode || 500;
-    const message = error.message || "Internal Server Error";
-    const name = error.name || "Internal Server Error";
-    return c.json(
-      {
-        success: false,
-        name,
-        statusCode,
-        message,
-      },
-      {
-        status: statusCode,
-      }
-    );
+    return catchErrorHandler(c, error);
   }
 });

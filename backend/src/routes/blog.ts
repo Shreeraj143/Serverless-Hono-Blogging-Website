@@ -4,6 +4,7 @@ import { createBlogInput, updateBlogInput } from "@shreeraj1811/medium-common";
 import { Hono } from "hono";
 import { verify } from "hono/jwt";
 import { errorHandler } from "../utils/error";
+import { catchErrorHandler } from "../utils/catchErrorHandler";
 
 export const blogRouter = new Hono<{
   Bindings: {
@@ -99,24 +100,73 @@ blogRouter.put("/", async (c) => {
 });
 
 blogRouter.get("/bulk", async (c) => {
-  const prisma = new PrismaClient({
-    datasourceUrl: c.env.DATABASE_URL,
-    log: ["query", "info", "warn", "error"],
-  }).$extends(withAccelerate());
+  try {
+    const {
+      userIdFromQuery,
+      slugFromQuery,
+      postIdFromQuery,
+      categoryFromQuery,
+      startIndexFromQuery,
+      limitFromQuery,
+      orderFromQuery,
+      searchTermFromQuery,
+    } = c.req.query();
+    const startIndex = parseInt(startIndexFromQuery) || 0;
+    const limit = parseInt(limitFromQuery) || 9;
+    const sortDirection = orderFromQuery === "asc" ? "asc" : "desc";
 
-  const posts = await prisma.post.findMany({
-    select: {
-      title: true,
-      content: true,
-      id: true,
-      author: {
-        select: {
-          username: true,
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+      log: ["query", "info", "warn", "error"],
+    }).$extends(withAccelerate());
+
+    const posts = await prisma.post.findMany({
+      where: {
+        ...(userIdFromQuery && { authorId: userIdFromQuery }),
+        ...(categoryFromQuery && { category: categoryFromQuery }),
+        ...(slugFromQuery && { slug: slugFromQuery }),
+        ...(postIdFromQuery && { id: postIdFromQuery }),
+        ...(searchTermFromQuery && {
+          OR: [
+            { title: { contains: searchTermFromQuery, mode: "insensitive" } },
+            { content: { contains: searchTermFromQuery, mode: "insensitive" } },
+          ],
+        }),
+      },
+      select: {
+        title: true,
+        content: true,
+        id: true,
+        category: true,
+        image: true,
+        author: {
+          select: {
+            username: true,
+          },
         },
       },
-    },
-  });
-  return c.json({ posts });
+      orderBy: {
+        updatedAt: sortDirection,
+      },
+      skip: startIndex,
+      take: limit,
+    });
+
+    const totalPosts = await prisma.post.count();
+
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+    const lastMonthPosts = await prisma.post.count({
+      where: {
+        createdAt: { gte: oneMonthAgo },
+      },
+    });
+
+    return c.json({ posts, totalPosts, lastMonthPosts }, { status: 200 });
+  } catch (error) {
+    return catchErrorHandler(c, error);
+  }
 });
 
 blogRouter.get("/:id", async (c) => {
