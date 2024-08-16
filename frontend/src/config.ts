@@ -22,3 +22,12 @@ export interface BlogFormData {
   image?: string;
   content?: string;
 }
+
+export interface Post {
+  id: string;
+  title: string;
+  category: string;
+  slug: string;
+  image: string;
+  updatedAt: string;
+}

@@ -69,7 +69,7 @@ blogRouter.post("/", async (c) => {
       authorId: authorId,
     },
   });
-  return c.json({ id: post.id });
+  return c.json({ post });
 });
 
 blogRouter.put("/", async (c) => {
@@ -102,18 +102,18 @@ blogRouter.put("/", async (c) => {
 blogRouter.get("/bulk", async (c) => {
   try {
     const {
-      userIdFromQuery,
-      slugFromQuery,
-      postIdFromQuery,
-      categoryFromQuery,
-      startIndexFromQuery,
-      limitFromQuery,
-      orderFromQuery,
-      searchTermFromQuery,
+      authorId,
+      slug,
+      postId,
+      category,
+      startIndex,
+      limit,
+      order,
+      searchTerm,
     } = c.req.query();
-    const startIndex = parseInt(startIndexFromQuery) || 0;
-    const limit = parseInt(limitFromQuery) || 9;
-    const sortDirection = orderFromQuery === "asc" ? "asc" : "desc";
+    const startingIndex = parseInt(startIndex) || 0;
+    const limitedPosts = parseInt(limit) || 9;
+    const sortDirection = order === "asc" ? "asc" : "desc";
 
     const prisma = new PrismaClient({
       datasourceUrl: c.env.DATABASE_URL,
@@ -122,22 +122,23 @@ blogRouter.get("/bulk", async (c) => {
 
     const posts = await prisma.post.findMany({
       where: {
-        ...(userIdFromQuery && { authorId: userIdFromQuery }),
-        ...(categoryFromQuery && { category: categoryFromQuery }),
-        ...(slugFromQuery && { slug: slugFromQuery }),
-        ...(postIdFromQuery && { id: postIdFromQuery }),
-        ...(searchTermFromQuery && {
+        ...(authorId && { authorId: authorId }),
+        ...(category && { category: category }),
+        ...(slug && { slug: slug }),
+        ...(postId && { id: postId }),
+        ...(searchTerm && {
           OR: [
-            { title: { contains: searchTermFromQuery, mode: "insensitive" } },
-            { content: { contains: searchTermFromQuery, mode: "insensitive" } },
+            { title: { contains: searchTerm, mode: "insensitive" } },
+            { content: { contains: searchTerm, mode: "insensitive" } },
           ],
         }),
       },
       select: {
-        title: true,
-        content: true,
         id: true,
+        title: true,
         category: true,
+        slug: true,
+        content: true,
         image: true,
         author: {
           select: {
@@ -148,8 +149,8 @@ blogRouter.get("/bulk", async (c) => {
       orderBy: {
         updatedAt: sortDirection,
       },
-      skip: startIndex,
-      take: limit,
+      skip: startingIndex,
+      take: limitedPosts,
     });
 
     const totalPosts = await prisma.post.count();

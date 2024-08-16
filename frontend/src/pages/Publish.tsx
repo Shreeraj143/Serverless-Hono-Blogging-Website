@@ -107,7 +107,7 @@ export const Publish = () => {
         return;
       } else {
         setPublishError(null);
-        navigate(`/post/${data.id}`);
+        navigate(`/post/${data.post.slug}`);
       }
     } catch (error) {
       setPublishError("Something went wrong");
