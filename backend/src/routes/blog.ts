@@ -172,6 +172,35 @@ blogRouter.get("/bulk", async (c) => {
   }
 });
 
+blogRouter.delete("/deletepost/:postId/:userId", async (c) => {
+  console.log("Received postId:", c.req.param("postId"));
+  console.log("Received userId:", c.req.param("userId"));
+  console.log("AuthorId from context:", c.get("authorId"));
+
+  if (c.req.param("userId") !== c.get("authorId")) {
+    throw errorHandler({
+      statusCode: 403,
+      message: "You are not allowed to delete this post",
+    });
+  }
+
+  try {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+      log: ["query", "error", "info", "warn"],
+    }).$extends(withAccelerate());
+
+    await prisma.post.delete({
+      where: { id: c.req.param("postId") },
+    });
+    return c.json("The post has been deleted", {
+      status: 200,
+    });
+  } catch (error) {
+    return catchErrorHandler(c, error);
+  }
+});
+
 blogRouter.get("/:id", async (c) => {
   const prisma = new PrismaClient({
     datasourceUrl: c.env.DATABASE_URL,

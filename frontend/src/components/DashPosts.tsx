@@ -3,14 +3,17 @@ import { userAtom } from "../store/atoms";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { BACKEND_URL, Post, UserAtomState } from "../config";
-import { Spinner, Table } from "flowbite-react";
+import { Button, Modal, Spinner, Table } from "flowbite-react";
 import { Link } from "react-router-dom";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 export default function DashPosts() {
   const userInfo = useRecoilValue<UserAtomState>(userAtom);
   const [userPosts, setUserPosts] = useState<Post[]>([]);
   const [loading, setLoading] = useState(false);
   const [showMore, setShowMore] = useState(true);
+  const [postIdToDelete, setPostIdToDelete] = useState("");
+  const [showModal, setShowModal] = useState(false);
 
   useEffect(() => {
     const fetchPosts = async () => {
@@ -69,6 +72,30 @@ export default function DashPosts() {
     }
   };
 
+  const handleDeletePost = async () => {
+    setShowModal(false);
+    try {
+      const response = await axios.delete(
+        `${BACKEND_URL}/api/v1/blog/deletepost/${postIdToDelete}/${userInfo.currentUser?.id}`,
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
+        }
+      );
+      const data = response.data;
+      if (response.status !== 200) {
+        console.log(data.message);
+      } else {
+        setUserPosts((prev) =>
+          prev.filter((post) => post.id != postIdToDelete)
+        );
+      }
+    } catch (error: any) {
+      console.log(error.message);
+    }
+  };
+
   return (
     <div className="table-auto overflow-x-scroll md:mx-auto p-3 scrollbar scrollbar-track-slate-100 scrollbar-thumb-slate-300 dark:scrollbar-track-slate-700 dark:scrollbar-thumb-slate-500">
       {loading ? (
@@ -86,9 +113,12 @@ export default function DashPosts() {
                 <span>Edit</span>
               </Table.HeadCell>
             </Table.Head>
-            {userPosts.map((post) => (
-              <Table.Body className="divide-y">
-                <Table.Row className="bg-white dark:border-gray-700 dark:bg-gray-800">
+            <Table.Body className="divide-y">
+              {userPosts.map((post) => (
+                <Table.Row
+                  key={post.id}
+                  className="bg-white dark:border-gray-700 dark:bg-gray-800"
+                >
                   <Table.Cell>
                     {new Date(post.updatedAt).toLocaleDateString()}
                   </Table.Cell>
@@ -113,7 +143,13 @@ export default function DashPosts() {
                     {post.category}
                   </Table.Cell>
                   <Table.Cell>
-                    <span className="font-medium text-red-500 hover:underline cursor-pointer">
+                    <span
+                      className="font-medium text-red-500 hover:underline cursor-pointer"
+                      onClick={() => {
+                        setShowModal(true);
+                        setPostIdToDelete(post.id);
+                      }}
+                    >
                       Delete
                     </span>
                   </Table.Cell>
@@ -126,8 +162,8 @@ export default function DashPosts() {
                     </Link>
                   </Table.Cell>
                 </Table.Row>
-              </Table.Body>
-            ))}
+              ))}
+            </Table.Body>
           </Table>
           {showMore && (
             <button
@@ -141,6 +177,30 @@ export default function DashPosts() {
       ) : (
         <p>You have no posts</p>
       )}
+      <Modal
+        show={showModal}
+        size="md"
+        onClose={() => setShowModal(false)}
+        popup
+      >
+        <Modal.Header />
+        <Modal.Body>
+          <div className="text-center">
+            <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+            <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+              Are you sure you want to delete this product?
+            </h3>
+            <div className="flex justify-center gap-4">
+              <Button color="failure" onClick={handleDeletePost}>
+                {"Yes, I'm sure"}
+              </Button>
+              <Button color="gray" onClick={() => setShowModal(false)}>
+                No, cancel
+              </Button>
+            </div>
+          </div>
+        </Modal.Body>
+      </Modal>
     </div>
   );
 }
