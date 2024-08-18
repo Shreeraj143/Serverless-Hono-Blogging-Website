@@ -72,33 +72,6 @@ blogRouter.post("/", async (c) => {
   return c.json({ post });
 });
 
-blogRouter.put("/", async (c) => {
-  const body = await c.req.json();
-  // console.log(body);
-
-  const { success } = updateBlogInput.safeParse(body);
-  if (!success) {
-    c.status(411);
-    return c.json({
-      message: "Invalid inputs",
-    });
-  }
-
-  const prisma = new PrismaClient({
-    datasourceUrl: c.env.DATABASE_URL,
-    log: ["query", "info", "warn", "error"],
-  }).$extends(withAccelerate());
-
-  const post = await prisma.post.update({
-    where: { id: body.id },
-    data: {
-      title: body.title,
-      content: body.content,
-    },
-  });
-  return c.json({ id: post.id });
-});
-
 blogRouter.get("/bulk", async (c) => {
   try {
     const {
@@ -173,10 +146,6 @@ blogRouter.get("/bulk", async (c) => {
 });
 
 blogRouter.delete("/deletepost/:postId/:userId", async (c) => {
-  console.log("Received postId:", c.req.param("postId"));
-  console.log("Received userId:", c.req.param("userId"));
-  console.log("AuthorId from context:", c.get("authorId"));
-
   if (c.req.param("userId") !== c.get("authorId")) {
     throw errorHandler({
       statusCode: 403,
@@ -230,5 +199,54 @@ blogRouter.get("/:id", async (c) => {
     return c.json({
       message: "Error while fetching blog post",
     });
+  }
+});
+
+blogRouter.put("/updatepost/:postId/:userId", async (c) => {
+  if (c.req.param("userId") != c.get("authorId")) {
+    throw errorHandler({
+      statusCode: 403,
+      message: "You are not allowed to update this post",
+    });
+  }
+
+  const { title, content, category, image } = await c.req.json();
+
+  try {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+      log: ["query", "error", "info", "warn"],
+    }).$extends(withAccelerate());
+
+    const updatedPost = await prisma.post.update({
+      where: { id: c.req.param("postId") },
+      data: {
+        title,
+        content,
+        category,
+        image,
+      },
+      select: {
+        id: true,
+        title: true,
+        category: true,
+        slug: true,
+        content: true,
+        createdAt: true,
+        updatedAt: true,
+        image: true,
+        author: {
+          select: {
+            username: true,
+          },
+        },
+      },
+    });
+
+    return c.json(updatedPost, {
+      status: 200,
+    });
+  } catch (error) {
+    return catchErrorHandler(c, error);
   }
 });

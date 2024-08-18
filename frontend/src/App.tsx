@@ -10,6 +10,7 @@ import About from "./pages/About";
 import FooterComponent from "./components/FooterComponent";
 import Dashboard from "./pages/Dashboard";
 import PrivateRoute from "./components/PrivateRoute";
+import { UpdatePost } from "./pages/UpdatePost";
 
 function App() {
   return (
@@ -23,12 +24,11 @@ function App() {
           <Route path="/signin" element={<Signin />} />
           <Route element={<PrivateRoute />}>
             <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/publish" element={<Publish />} />
+            <Route path="/update-post/:postId" element={<UpdatePost />} />
           </Route>
           <Route path="/blog/:id" element={<Blog />} />
           <Route path="/blogs" element={<Blogs />} />
-          <Route element={<PrivateRoute />}>
-            <Route path="/publish" element={<Publish />} />
-          </Route>
         </Routes>
         <FooterComponent />
       </BrowserRouter>
