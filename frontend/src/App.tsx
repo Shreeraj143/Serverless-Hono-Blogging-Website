@@ -27,7 +27,7 @@ function App() {
             <Route path="/publish" element={<Publish />} />
             <Route path="/update-post/:postId" element={<UpdatePost />} />
           </Route>
-          <Route path="/blog/:id" element={<Blog />} />
+          <Route path="/post/:postSlug" element={<Blog />} />
           <Route path="/blogs" element={<Blogs />} />
         </Routes>
         <FooterComponent />

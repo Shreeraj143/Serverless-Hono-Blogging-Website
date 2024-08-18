@@ -1,42 +1,38 @@
+import { Link } from "react-router-dom";
 import { Blog } from "../hooks";
-import { Avatar } from "./BlogCard";
+import { Button } from "flowbite-react";
 
-export const SingleBlog = ({ blog }: { blog: Blog }) => {
+export const SingleBlog = ({ post }: { post: Blog }) => {
+  console.log(post);
+
   return (
-    <div className="">
-      <div className="flex justify-center">
-        <div className="grid px-10 w-full grid-cols-12 max-w-screen-2xl pt-12">
-          <div className="col-span-9 pr-5">
-            <div className="border-b">
-              <div className="text-5xl font-extrabold">{blog.title}</div>
-              <div className="text-slate-500 pt-6 pb-3">
-                Posted on 24th March 2024
-              </div>
-            </div>
-            <div
-              className="pt-6"
-              dangerouslySetInnerHTML={{ __html: blog.content }}
-            />
-          </div>
-          <div className="col-span-3 h-screen pl-4">
-            <span className="text-lg text-slate-600">Author</span>
-            <div className="pt-2 flex">
-              <div className="pr-4 flex flex-col justify-center">
-                <Avatar name={blog.author.name} size="big" />
-              </div>
-              <div className="">
-                <div className="text-2xl font-bold capitalize">
-                  {blog.author.name}
-                </div>
-                <div className="text-slate-500">
-                  Random catch phrase of the author to attract the attention of
-                  the reader.
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <main className="p-3 flex flex-col max-w-6xl mx-auto min-h-screen">
+      <h1 className="text-3xl mt-10 p-3 text-center font-serif max-w-2xl mx-auto lg:text-4xl">
+        {post && post.title}
+      </h1>
+      <Link
+        to={`/search?category=${post && post.category}`}
+        className="self-center mt-5"
+      >
+        <Button color="gray" pill size="xs">
+          {post && post.category}
+        </Button>
+      </Link>
+      <img
+        src={post && post.image}
+        alt={post && post.title}
+        className="mt-10 p-3 max-h-[600px] w-full object-cover"
+      />
+      <div className="flex justify-between p-3 border-b border-slate-500 mx-auto w-full max-w-2xl text-xs">
+        <span>{post && new Date(post.createdAt).toLocaleDateString()}</span>
+        <span className="italic">
+          {post && (post.content.length / 1000).toFixed(0)} mins read
+        </span>
       </div>
-    </div>
+      <div
+        className="p-3 max-w-2xl mx-auto w-full post-content overflow-scroll"
+        dangerouslySetInnerHTML={{ __html: post && post.content }}
+      ></div>
+    </main>
   );
 };

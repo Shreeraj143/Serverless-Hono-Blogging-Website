@@ -19,7 +19,7 @@ export const BlogCard = ({
     <Link to={`/blog/${id}`}>
       <div className="p-4 border-b border-slate-200 pb-4 max-w-3xl w-screen cursor-pointer ">
         <div className="flex items-center">
-          <Avatar size="small" name={authorName} />
+          <Avatar size="small" username={authorName} />
           <div className="font-extralight pl-2 capitalize">{authorName}</div>
           <div className="flex flex-col justify-center pl-2">
             <Circle />
@@ -46,10 +46,10 @@ export function Circle() {
 }
 
 export function Avatar({
-  name,
+  username,
   size = "small",
 }: {
-  name: string;
+  username: string;
   size: "small" | "big";
 }) {
   return (
@@ -63,7 +63,7 @@ export function Avatar({
           size === "small" ? "text-sm" : "text-md"
         } text-gray-600 dark:text-gray-300 capitalize`}
       >
-        {name[0]}
+        {username[0]}
       </span>
     </div>
   );
