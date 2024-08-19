@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import { Blog } from "../hooks";
 import { Button } from "flowbite-react";
+import CommentSection from "./CommentSection";
 
 export const SingleBlog = ({ post }: { post: Blog }) => {
   console.log(post);
@@ -33,6 +34,9 @@ export const SingleBlog = ({ post }: { post: Blog }) => {
         className="p-3 max-w-2xl mx-auto w-full post-content overflow-scroll"
         dangerouslySetInnerHTML={{ __html: post && post.content }}
       ></div>
+      <div className="">
+        <CommentSection postId={post.id} />
+      </div>
     </main>
   );
 };

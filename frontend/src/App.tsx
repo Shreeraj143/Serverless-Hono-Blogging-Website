@@ -11,11 +11,13 @@ import FooterComponent from "./components/FooterComponent";
 import Dashboard from "./pages/Dashboard";
 import PrivateRoute from "./components/PrivateRoute";
 import { UpdatePost } from "./pages/UpdatePost";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <>
       <BrowserRouter>
+        <ScrollToTop />
         <Appbar />
         <Routes>
           <Route path="/" element={<Home />} />
