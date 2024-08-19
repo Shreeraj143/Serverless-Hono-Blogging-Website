@@ -26,8 +26,8 @@ blogRouter.use("/*", async (c, next) => {
     } else {
       throw errorHandler({ statusCode: 403, message: "You are not logged in" });
     }
-  } catch (e) {
-    throw errorHandler({ statusCode: 403, message: "You are not logged in" });
+  } catch (error: any) {
+    return catchErrorHandler(c, error);
   }
 });
 
