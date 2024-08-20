@@ -37,6 +37,8 @@ export interface Comment {
   content: string;
   postId: string;
   authorId: string;
+  likes: User[];
+  numberOfLikes: number;
   createdAt: string;
   updatedAt: string;
 }
