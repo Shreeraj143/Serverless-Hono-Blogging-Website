@@ -195,11 +195,8 @@ userRouter.put("/update/:usrId", authMiddleware, async (c) => {
   }
 });
 
-userRouter.delete("/delete/:usrId", authMiddleware, async (c) => {
-  const { usrId } = c.req.param();
-  const userId = c.get("userId");
-
-  if (userId != usrId) {
+userRouter.delete("/delete/:userId", authMiddleware, async (c) => {
+  if (c.get("userId") != c.req.param("userId")) {
     throw errorHandler({
       statusCode: 403,
       message: "You are not allowed to delete this user",
@@ -213,13 +210,36 @@ userRouter.delete("/delete/:usrId", authMiddleware, async (c) => {
     }).$extends(withAccelerate());
 
     await prisma.user.delete({
-      where: { id: userId },
+      where: { id: c.get("userId") },
     });
 
     c.status(200);
     return c.json("User Deleted Successfully");
   } catch (error: any) {
     // console.log("Error during user creation:", error);
+    return catchErrorHandler(c, error);
+  }
+});
+
+userRouter.get("/:userId", async (c) => {
+  try {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+      log: ["error", "info", "query", "warn"],
+    }).$extends(withAccelerate());
+
+    const user = await prisma.user.findUnique({
+      where: { id: c.req.param("userId") },
+    });
+
+    if (!user) {
+      throw errorHandler({ statusCode: 404, message: "User Not Found" });
+    }
+
+    const { password, ...rest } = user;
+
+    return c.json({ user: rest });
+  } catch (error) {
     return catchErrorHandler(c, error);
   }
 });

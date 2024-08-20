@@ -43,3 +43,25 @@ commentRouter.post("/create", authMiddleware, async (c) => {
     return catchErrorHandler(c, error);
   }
 });
+
+commentRouter.get("/getPostComments/:postId", async (c) => {
+  try {
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+      log: ["query", "error", "info", "warn"],
+    }).$extends(withAccelerate());
+
+    const comments = await prisma.comment.findMany({
+      where: { postId: c.req.param("postId") },
+      orderBy: {
+        updatedAt: "desc",
+      },
+    });
+
+    return c.json(comments, {
+      status: 200,
+    });
+  } catch (error) {
+    return catchErrorHandler(c, error);
+  }
+});

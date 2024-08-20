@@ -5,16 +5,18 @@ import {
   Flowbite,
   Textarea,
 } from "flowbite-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useRecoilValue } from "recoil";
 import { userAtom } from "../store/atoms";
 import axios from "axios";
-import { BACKEND_URL } from "../config";
+import { BACKEND_URL, Comment as CommentType } from "../config";
+import Comment from "./Comment";
 
 export default function CommentSection({ postId }: { postId: string }) {
   const userInfo = useRecoilValue(userAtom);
   const [comment, setComment] = useState("");
+  const [comments, setComments] = useState<CommentType[]>([]);
   const [commentError, setCommentError] = useState(null);
 
   const customTheme: CustomFlowbiteTheme = {
@@ -50,6 +52,23 @@ export default function CommentSection({ postId }: { postId: string }) {
       setCommentError(error.message);
     }
   };
+
+  useEffect(() => {
+    const getComments = async () => {
+      try {
+        const response = await axios.get(
+          `${BACKEND_URL}/api/v1/comment/getPostComments/${postId}`
+        );
+        if (response.status === 200) {
+          const data = await response.data;
+          setComments(data);
+        }
+      } catch (error: any) {
+        console.log(error.message);
+      }
+    };
+    getComments();
+  }, [postId]);
 
   return (
     <Flowbite theme={{ theme: customTheme }}>
@@ -103,6 +122,21 @@ export default function CommentSection({ postId }: { postId: string }) {
               </Alert>
             )}
           </form>
+        )}
+        {comments.length === 0 ? (
+          <p className="text-sm my-5">No comments yet!</p>
+        ) : (
+          <>
+            <div className="text-sm my-5 flex items-center gap-1">
+              <p>Comments</p>
+              <div className="border border-gray-400 py-1 px-2 rounded-sm">
+                <p>{comments.length}</p>
+              </div>
+            </div>
+            {comments.map((comment) => (
+              <Comment key={comment.id} comment={comment} />
+            ))}
+          </>
         )}
       </div>
     </Flowbite>
