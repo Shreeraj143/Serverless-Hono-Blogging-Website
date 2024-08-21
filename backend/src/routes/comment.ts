@@ -118,3 +118,40 @@ commentRouter.put("/likeComment/:commentId", authMiddleware, async (c) => {
     return catchErrorHandler(c, error);
   }
 });
+
+commentRouter.put("/editComment/:commentId", authMiddleware, async (c) => {
+  try {
+    const commentId = c.req.param("commentId");
+    const { content } = await c.req.json();
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+      log: ["error", "info", "query", "warn"],
+    }).$extends(withAccelerate());
+
+    const comment = await prisma.comment.findUnique({
+      where: { id: commentId },
+    });
+
+    if (!comment) {
+      throw errorHandler({ statusCode: 404, message: "Comment Not Found" });
+    }
+
+    if (comment.authorId !== c.get("userId")) {
+      throw errorHandler({
+        statusCode: 403,
+        message: "You are not allowed to edit this comment",
+      });
+    }
+
+    const editedComment = await prisma.comment.update({
+      where: { id: commentId },
+      data: {
+        content,
+      },
+    });
+
+    return c.json(editedComment, { status: 200 });
+  } catch (error) {
+    return catchErrorHandler(c, error);
+  }
+});
