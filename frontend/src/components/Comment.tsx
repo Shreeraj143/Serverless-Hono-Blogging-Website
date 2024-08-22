@@ -11,9 +11,10 @@ import { Button, Textarea } from "flowbite-react";
 interface CommentProps {
   comment: CommentType;
   onEdit: (comment: CommentType, editedContent: string) => Promise<void>;
+  onDelete: (commentId: string) => void;
 }
 
-export default function Comment({ comment, onEdit }: CommentProps) {
+export default function Comment({ comment, onEdit, onDelete }: CommentProps) {
   const [user, setUser] = useState<User>();
   const userInfo = useRecoilValue(userAtom);
   const navigate = useNavigate();
@@ -191,12 +192,20 @@ export default function Comment({ comment, onEdit }: CommentProps) {
               </p>
               {userInfo.currentUser &&
                 userInfo.currentUser.id === comment.authorId && (
-                  <button
-                    className="text-gray-400 hover:text-blue-500"
-                    onClick={handleEdit}
-                  >
-                    Edit
-                  </button>
+                  <>
+                    <button
+                      className="text-gray-400 hover:text-blue-500"
+                      onClick={handleEdit}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="text-gray-400 hover:text-blue-500"
+                      onClick={() => onDelete(comment.id)}
+                    >
+                      Delete
+                    </button>
+                  </>
                 )}
             </div>
           </>

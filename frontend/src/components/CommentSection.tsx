@@ -3,6 +3,7 @@ import {
   Button,
   CustomFlowbiteTheme,
   Flowbite,
+  Modal,
   Textarea,
 } from "flowbite-react";
 import React, { useEffect, useState } from "react";
@@ -12,12 +13,15 @@ import { userAtom } from "../store/atoms";
 import axios from "axios";
 import { BACKEND_URL, Comment as CommentType } from "../config";
 import Comment from "./Comment";
+import { HiOutlineExclamationCircle } from "react-icons/hi";
 
 export default function CommentSection({ postId }: { postId: string }) {
   const userInfo = useRecoilValue(userAtom);
   const [comment, setComment] = useState("");
   const [comments, setComments] = useState<CommentType[]>([]);
   const [commentError, setCommentError] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+  const [commentToDelete, setCommentToDelete] = useState("");
 
   const customTheme: CustomFlowbiteTheme = {
     button: {
@@ -76,6 +80,26 @@ export default function CommentSection({ postId }: { postId: string }) {
         c.id === comment.id ? { ...c, content: editedContent } : c
       )
     );
+  };
+
+  const handleDeleteComment = async (commentId: string) => {
+    setShowModal(false);
+    try {
+      const response = await axios.delete(
+        `${BACKEND_URL}/api/v1/comment/deleteComment/${commentId}`,
+        {
+          headers: {
+            Authorization: localStorage.getItem("token"),
+          },
+        }
+      );
+
+      if (response.status === 200) {
+        setComments(comments.filter((comment) => comment.id !== commentId));
+      }
+    } catch (error: any) {
+      console.log(error.message);
+    }
   };
 
   return (
@@ -142,10 +166,45 @@ export default function CommentSection({ postId }: { postId: string }) {
               </div>
             </div>
             {comments.map((comment) => (
-              <Comment key={comment.id} comment={comment} onEdit={handleEdit} />
+              <Comment
+                key={comment.id}
+                comment={comment}
+                onEdit={handleEdit}
+                onDelete={(commentId: string) => {
+                  setShowModal(true);
+                  setCommentToDelete(commentId);
+                }}
+              />
             ))}
           </>
         )}
+        <Modal
+          show={showModal}
+          size="md"
+          onClose={() => setShowModal(false)}
+          popup
+        >
+          <Modal.Header />
+          <Modal.Body>
+            <div className="text-center">
+              <HiOutlineExclamationCircle className="mx-auto mb-4 h-14 w-14 text-gray-400 dark:text-gray-200" />
+              <h3 className="mb-5 text-lg font-normal text-gray-500 dark:text-gray-400">
+                Are you sure you want to delete this product?
+              </h3>
+              <div className="flex justify-center gap-4">
+                <Button
+                  color="failure"
+                  onClick={() => handleDeleteComment(commentToDelete)}
+                >
+                  {"Yes, I'm sure"}
+                </Button>
+                <Button color="gray" onClick={() => setShowModal(false)}>
+                  No, cancel
+                </Button>
+              </div>
+            </div>
+          </Modal.Body>
+        </Modal>
       </div>
     </Flowbite>
   );
