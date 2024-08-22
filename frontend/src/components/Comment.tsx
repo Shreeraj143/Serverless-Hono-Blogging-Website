@@ -8,13 +8,18 @@ import { userAtom } from "../store/atoms";
 import { useNavigate } from "react-router-dom";
 import { Button, Textarea } from "flowbite-react";
 
-export default function Comment({ comment }: { comment: CommentType }) {
+interface CommentProps {
+  comment: CommentType;
+  onEdit: (comment: CommentType, editedContent: string) => Promise<void>;
+}
+
+export default function Comment({ comment, onEdit }: CommentProps) {
   const [user, setUser] = useState<User>();
   const userInfo = useRecoilValue(userAtom);
   const navigate = useNavigate();
-  const [updatedComment, setUpdatedComment] = useState(comment);
+  const [commentState, setCommentState] = useState<CommentType>(comment);
   const [isEditing, setIsEditing] = useState(false);
-  const [editedContent, setEditedContent] = useState(comment.content);
+  const [editedContent, setEditedContent] = useState(comment?.content);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -55,11 +60,11 @@ export default function Comment({ comment }: { comment: CommentType }) {
         const data = response.data;
         console.log(data);
 
-        setUpdatedComment({
-          ...updatedComment,
+        setCommentState((prevState) => ({
+          ...prevState,
           likes: data.likes,
           numberOfLikes: data.likes.length,
-        });
+        }));
       }
     } catch (error) {
       console.log(error);
@@ -67,8 +72,8 @@ export default function Comment({ comment }: { comment: CommentType }) {
   };
 
   const handleEdit = async () => {
+    setEditedContent(commentState?.content || "");
     setIsEditing(true);
-    setEditedContent(updatedComment.content);
   };
 
   const handleSave = async () => {
@@ -79,7 +84,7 @@ export default function Comment({ comment }: { comment: CommentType }) {
     }
     try {
       const response = await axios.put(
-        `${BACKEND_URL}/api/v1/comment/editComment/${comment.id}`,
+        `${BACKEND_URL}/api/v1/comment/editComment/${commentState?.id}`,
         { content: editedContent },
         {
           headers: {
@@ -90,7 +95,7 @@ export default function Comment({ comment }: { comment: CommentType }) {
 
       if (response.status === 200) {
         setIsEditing(false);
-        setUpdatedComment({ ...updatedComment, content: editedContent });
+        onEdit(commentState, editedContent);
         setError(null);
       }
     } catch (error: any) {
@@ -100,10 +105,14 @@ export default function Comment({ comment }: { comment: CommentType }) {
   };
 
   const handleCancel = () => {
+    setEditedContent(commentState?.content || ""); // Reset editedContent to the original comment content
     setIsEditing(false); // Exit editing mode
-    setEditedContent(updatedComment.content); // Reset editedContent to the original comment content
     setError(null); // Clear any error messages
   };
+
+  if (!commentState) {
+    return <div>Loading...</div>; // Or any fallback UI you want to show while loading
+  }
 
   return (
     <div className="flex p-4 border-b dark:border-gray-600 text-sm">
@@ -141,7 +150,7 @@ export default function Comment({ comment }: { comment: CommentType }) {
                 color={"blue"}
                 onClick={handleSave}
                 disabled={
-                  editedContent === updatedComment.content ||
+                  editedContent === commentState.content ||
                   editedContent.trim() === ""
                 }
               >
@@ -166,7 +175,7 @@ export default function Comment({ comment }: { comment: CommentType }) {
                 onClick={handleLike}
                 className={`text-gray-400 hover:text-blue-500 ${
                   userInfo.currentUser &&
-                  updatedComment.likes?.some(
+                  commentState.likes?.some(
                     (user) => user.id === userInfo.currentUser?.id
                   ) &&
                   "!text-blue-500"
@@ -175,10 +184,10 @@ export default function Comment({ comment }: { comment: CommentType }) {
                 <FaThumbsUp />
               </button>
               <p className="text-gray-400">
-                {updatedComment.numberOfLikes > 0 &&
-                  updatedComment.numberOfLikes +
+                {commentState.numberOfLikes > 0 &&
+                  commentState.numberOfLikes +
                     " " +
-                    (updatedComment.numberOfLikes === 1 ? "like" : "likes")}
+                    (commentState.numberOfLikes === 1 ? "like" : "likes")}
               </p>
               {userInfo.currentUser &&
                 userInfo.currentUser.id === comment.authorId && (

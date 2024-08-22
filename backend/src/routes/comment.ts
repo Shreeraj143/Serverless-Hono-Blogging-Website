@@ -4,6 +4,7 @@ import { catchErrorHandler } from "../utils/catchErrorHandler";
 import { errorHandler } from "../utils/error";
 import { PrismaClient } from "@prisma/client/edge";
 import { withAccelerate } from "@prisma/extension-accelerate";
+import { blogRouter } from "./blog";
 
 export const commentRouter = new Hono<{
   Bindings: {

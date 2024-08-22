@@ -70,6 +70,14 @@ export default function CommentSection({ postId }: { postId: string }) {
     getComments();
   }, [postId]);
 
+  const handleEdit = async (comment: CommentType, editedContent: string) => {
+    setComments(
+      comments.map((c) =>
+        c.id === comment.id ? { ...c, content: editedContent } : c
+      )
+    );
+  };
+
   return (
     <Flowbite theme={{ theme: customTheme }}>
       <div className="max-w-2xl mx-auto w-full p-3">
@@ -134,7 +142,7 @@ export default function CommentSection({ postId }: { postId: string }) {
               </div>
             </div>
             {comments.map((comment) => (
-              <Comment key={comment.id} comment={comment} />
+              <Comment key={comment.id} comment={comment} onEdit={handleEdit} />
             ))}
           </>
         )}
