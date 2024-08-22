@@ -8,6 +8,7 @@ export interface Blog {
   content: string;
   id: string;
   category: string;
+  slug: string;
   image: string;
   createdAt: string;
   updateAt: string;
