@@ -1,8 +1,13 @@
 import { useEffect, useState } from "react";
 import { CustomFlowbiteTheme, Flowbite, Sidebar } from "flowbite-react";
-import { HiArrowSmRight, HiDocumentText, HiUser } from "react-icons/hi";
+import {
+  HiAnnotation,
+  HiArrowSmRight,
+  HiDocumentText,
+  HiUser,
+} from "react-icons/hi";
 import { Link, useLocation } from "react-router-dom";
-import { useRecoilValue, useSetRecoilState } from "recoil";
+import { useSetRecoilState } from "recoil";
 import { userAtom } from "../store/atoms";
 import { UserAtomState } from "../config";
 
@@ -44,7 +49,7 @@ export default function DashSidebar() {
 
   return (
     <Flowbite theme={{ theme: customTheme }}>
-      <Sidebar>
+      <Sidebar className="w-full md:w-56">
         <Sidebar.Items>
           <Sidebar.ItemGroup className="flex flex-col gap-1">
             <Link to={"/dashboard?tab=profile"}>
@@ -65,6 +70,15 @@ export default function DashSidebar() {
                 as="div"
               >
                 Posts
+              </Sidebar.Item>
+            </Link>
+            <Link to={"/dashboard?tab=comments"}>
+              <Sidebar.Item
+                active={tab === "comments"}
+                icon={HiAnnotation}
+                as="div"
+              >
+                Comments
               </Sidebar.Item>
             </Link>
             <Sidebar.Item

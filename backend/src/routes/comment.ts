@@ -190,3 +190,49 @@ commentRouter.delete("/deleteComment/:commentId", authMiddleware, async (c) => {
     return catchErrorHandler(c, error);
   }
 });
+
+commentRouter.get("/getComments", authMiddleware, async (c) => {
+  try {
+    const { startIndex, limit, order } = c.req.query();
+    const authorId = c.get("userId");
+    const startingIndex = parseInt(startIndex) || 0;
+    const limitedComments = parseInt(limit) || 9;
+    const sortDirection = order === "asc" ? "asc" : "desc";
+
+    const prisma = new PrismaClient({
+      datasourceUrl: c.env.DATABASE_URL,
+      log: ["query", "info", "warn", "error"],
+    }).$extends(withAccelerate());
+
+    const comments = await prisma.comment.findMany({
+      where: { authorId },
+      select: {
+        id: true,
+        content: true,
+        postId: true,
+        authorId: true,
+        likes: true,
+        numberOfLikes: true,
+        createdAt: true,
+        updatedAt: true,
+        post: true,
+      },
+      orderBy: {
+        updatedAt: sortDirection,
+      },
+      skip: startingIndex,
+      take: limitedComments,
+    });
+
+    const oneMonthAgo = new Date();
+    oneMonthAgo.setMonth(oneMonthAgo.getMonth() - 1);
+
+    const lastMonthComments = await prisma.comment.findMany({
+      where: { authorId, createdAt: { gte: oneMonthAgo } },
+    });
+
+    return c.json({ comments, lastMonthComments }, { status: 200 });
+  } catch (error) {
+    return catchErrorHandler(c, error);
+  }
+});

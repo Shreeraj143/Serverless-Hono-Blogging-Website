@@ -28,8 +28,10 @@ export interface Post {
   title: string;
   category: string;
   slug: string;
+  authorId: string;
   image: string;
   updatedAt: string;
+  createdAt: string;
 }
 
 export interface Comment {
@@ -41,4 +43,5 @@ export interface Comment {
   numberOfLikes: number;
   createdAt: string;
   updatedAt: string;
+  post: Post;
 }
